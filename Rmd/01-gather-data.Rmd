@@ -1,0 +1,19 @@
+---
+title: "Gathering Data"
+author: "Eric C. Anderson"
+date: "November 18, 2014"
+output: html_document
+---
+
+Here I document how I went about gathering data from RMIS.  Mostly it is just
+a record of the Queries used and where I put the resulting data files.
+
+## Location data
+
+I figured it would be feasible to just download the entire location data base.  The query that seemed
+to make that possible produced this in the email from RMIS:
+```
+WHERE state IN ('AK','BC','CA','CO','FO','HS','ID','MI','MN','MT','ND','NE','OR','WA','WI','WY')
+```
+That's fine.  I did that query on November 4, 2014.  It is a csv file and I have placed it into:
+`./data/locations.csv`
