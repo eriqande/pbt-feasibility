@@ -1,0 +1,74 @@
+---
+title: "Exploring Release Data"
+author: "Eric C. Anderson"
+date: "November 18, 2014"
+output:
+  html_document:
+    fig_width: 10
+    fig_height: 8
+---
+
+```{r, echo=FALSE, include=FALSE}
+library(knitr)
+opts_knit$set(root.dir = '..')
+```
+
+```{r, echo=FALSE, include=FALSE}
+# load libraries, etc
+library(ggplot2)
+library(lubridate)
+library(dplyr)
+library(reshape2)
+source("R/rmis_cleaning.R")
+```
+
+
+## Initial Maneuvers
+
+Here we look at some properties to make sure that we got everything we wanted:
+```{r}
+# load it in
+releases <- readRDS("data/releases.rds")
+dim(releases)
+releases$species <- int_to_factor(releases$species, species_levels())
+```
+
+
+### Numbers of tagged vs untagged fish etc.
+We will start off with some simple investigations of the number of fish 
+that are tagged and not tagged.  These numbers are stored in four columns
+named `r paste(names(releases)[grepl("_count$", names(releases))], collapse=", ")`.
+
+So, we can sum those up and plot them by year
+```{r}
+# count em and reshape
+count_cols <- names(releases)[grepl("_count$", names(releases))]
+counts <- releases %>%
+  group_by(brood_year, species) %>%
+  summarise_each_(funs(sum(., na.rm = TRUE)), count_cols) %>%
+  melt(id.vars = c("species", "brood_year"))
+
+# plot em
+ggplot(counts, aes(x = brood_year, y = value, color =  variable)) + 
+  geom_line() + 
+  facet_wrap(~ species, ncol = 3)
+```
+
+That is very interesting. It shows that there are a lot of untagged pink and chums
+released.  It also shows that the tagging fraction of chinook appears to be
+the highest amongst all the species.
+
+Let us now look closely at Chinook and Coho:
+```{r}
+counts %>%
+  filter(species %in% c("Chinook", "Coho")) %>%
+  ggplot(aes(x = brood_year, y = value, color =  variable)) + 
+  geom_point() + geom_line() +
+  facet_wrap(~ species, ncol = 2, scales = "free")
+
+```
+I am going to focus on the time since 2000.
+```{r}
+post2K <- releases %>% filter(brood_year >= 2000, species == 1) 
+```
+

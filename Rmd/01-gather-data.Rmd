@@ -5,9 +5,35 @@ date: "November 18, 2014"
 output: html_document
 ---
 
+```{r, echo=FALSE, include=FALSE}
+# load libraries, etc
+library(ggplot2)
+library(lubridate)
+library(dplyr)
+library(reshape2)
+```
 Here I document how I went about gathering data from RMIS.  Mostly it is just
 a record of the Queries used and where I put the resulting data files.
 
+
+## Releases
+
+I wanted to get all releases, so I followed this link http://www.rmis.org/cgi-bin/queryfrm.mpl?Table=all_releases&Version=4.1
+and then choose all possible years and asked for it as a csv file.
+
+```
+The query criteria used to produce this report was:
+
+WHERE brood_year IN (1950,1951,1952,1953,1954,1955,1956,1957,1958,1959,1960,1961,1962,1963,1964,1965,1966,1967,1968,1969,1970,1971,1972,1973,1974,1975,1976,1977,1978,1979,1980,1981,1982,1983,1984,1985,1986,1987,1988,1989,1990,1991,1992,1993,1994,1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014)
+```
+
+Once I downloaded it and unzipped it I did this:
+```{r, eval=FALSE}
+x <- read.csv("~/Downloads/CSV5964.TXT", stringsAsFactors = FALSE, na.strings = "")
+x <- read.csv(unz("~/Downloads/CSV5964.zip", filename = "CSV5964.TXT"), stringsAsFactors = FALSE, na.strings = "")
+x <- tbl_df(x)
+saveRDS(x, compress = "xz", file = "data/releases.rds") 
+```
 ## Location data
 
 I figured it would be feasible to just download the entire location data base.  The query that seemed
@@ -17,3 +43,4 @@ WHERE state IN ('AK','BC','CA','CO','FO','HS','ID','MI','MN','MT','ND','NE','OR'
 ```
 That's fine.  I did that query on November 4, 2014.  It is a csv file and I have placed it into:
 `./data/locations.csv`
+
