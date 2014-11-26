@@ -6,6 +6,7 @@ output:
   html_document:
     fig_width: 10
     fig_height: 8
+    toc: yes
 ---
 
 ```{r, echo=FALSE, include=FALSE}
@@ -44,12 +45,12 @@ So, we can sum those up and plot them by year
 # count em and reshape
 count_cols <- names(releases)[grepl("_count$", names(releases))]
 counts <- releases %>%
-  group_by(brood_year, species) %>%
+  group_by(brood_year, species, record_code) %>%
   summarise_each_(funs(sum(., na.rm = TRUE)), count_cols) %>%
-  melt(id.vars = c("species", "brood_year"))
+  melt(id.vars = c("species", "brood_year", "record_code"))
 
 # plot em
-ggplot(counts, aes(x = brood_year, y = value, color =  variable)) + 
+ggplot(counts, aes(x = brood_year, y = value, color =  variable, linetype = record_code)) + 
   geom_line() + 
   facet_wrap(~ species, ncol = 3)
 ```
@@ -58,17 +59,128 @@ That is very interesting. It shows that there are a lot of untagged pink and chu
 released.  It also shows that the tagging fraction of chinook appears to be
 the highest amongst all the species.
 
+It is important to point out that the solid lines are the //non-associated
+releases//---i.e. releases of hatchery fish that do not include any tagged
+fish.  And the dashed lines are the releases that include fish with tags.  
+
 Let us now look closely at Chinook and Coho:
 ```{r}
 counts %>%
   filter(species %in% c("Chinook", "Coho")) %>%
-  ggplot(aes(x = brood_year, y = value, color =  variable)) + 
+  ggplot(aes(x = brood_year, y = value, color =  variable, linetype = record_code, shape = record_code)) + 
   geom_point() + geom_line() +
   facet_wrap(~ species, ncol = 2, scales = "free")
 
 ```
-I am going to focus on the time since 2000.
+
+Again, this is very interesting.  One of the things that I notice is that
+there are a lot of non-cwt-2nd-mark-count fish in the late '90s.  I wonder
+if the non-cwt-first-mark fish in those cases are totally unmarked, and the
+second mark in that case is the ad-clip.
+
+### What years shall we focus on?
+In our coastwide simulation, I think it would be good to compare how PBT would have fared versus
+CWTs for a reasonably long period of time, and obviously it will be worthwhile to have it be a 
+fairly recent block of time.  It is pretty clear that the release data after 2012 is not really there,
+which makes me wonder if the recovery data might be incomplete too.  So, I propose this:
+
+* __Focus on recoveries from 2002 to 2012__
+* __Hence, we will want to deal with releases from 1993 to 2010__
+
+So, let's see what those look like:
 ```{r}
-post2K <- releases %>% filter(brood_year >= 2000, species == 1) 
+counts %>%
+  filter(species %in% c("Chinook", "Coho"), brood_year >= 1993 & brood_year <= 2010 ) %>%
+  ggplot(aes(x = brood_year, y = value, color =  variable, linetype = record_code, shape = record_code)) + 
+  geom_point() + geom_line() +
+  facet_wrap(~ species, ncol = 2, scales = "free")
 ```
 
+That looks pretty darn sensible to me.  So, moving forward we will want to filter on these.
+
+### What sorts of marks are being used?
+
+The PSC has an elaborate coding system for combinations of different marks.  Unfortunately it seems that
+they only have it recorded in a PDF file.  It seems that they should have it in a flat text file
+so that one could do something with it easily.  I have tried my best to faithfull translate the marks
+into a factor.  Let's do that here:
+```{r}
+markls <- releases %>% 
+  mutate_each_(funs = funs(mark_to_string), names(releases)[grepl("_mark$", names(releases))])
+```
+
+Great, now I want to look at upon how many fish each of these is used for the four catetegories of marks (cwt, non) x (1st, 2nd).  We may as well
+limit ourselves to the species and years we are interested in.  In fact, let's just do this for Chinook right now.
+
+```{r}
+chinook18 <- markls %>% 
+  filter(species %in% c("Chinook"), brood_year >= 1993 & brood_year <= 2010 )
+```
+
+```{r}
+marksums <- chinook18 %>% 
+  group_by(record_code, cwt_1st_mark,cwt_2nd_mark, non_cwt_1st_mark, non_cwt_2nd_mark) %>% 
+  summarise_each(funs(sum(., na.rm = TRUE)), cwt_1st_mark_count, cwt_2nd_mark_count, non_cwt_1st_mark_count, non_cwt_2nd_mark_count) %>%
+  ungroup()
+
+totals <- marksums %>% select(ends_with("_count")) %>% rowSums( na.rm = TRUE)
+
+# tack on totals, percentages, and then sort
+marksums <- cbind(marksums, total = totals) %>% 
+  arrange(desc(total)) %>%
+  mutate(percentage = 100 * total / sum(total), cumul_perc = cumsum(percentage))
+
+```
+
+That is awfully hard to look at in R.  So, it will get saved as a csv file:
+```{r}
+write.csv(marksums, file = "marktypes.csv")
+```
+
+### Super rough tagging costs calculations
+
+Looking at the table that got output above makes me start wondering how much it would
+cost to tag every ad-clipped fish (from associated release groups, or not) using PBT,
+and it would be good to compare that to the CWT cost.
+
+We will want to account for DIT tagging pecularities, too.  
+
+So, first off, let's get the number of CWT tagged fish for every release groups, regardless of the kind
+of mark that they got, and we can multiply that by 13 cents for the price of every wire tag.
+```{r}
+cwts <- chinook18 %>%
+  group_by(brood_year) %>%
+  summarise_each(funs(sum(., na.rm = TRUE)), cwt_1st_mark_count, cwt_2nd_mark_count) %>%
+  mutate(num_cwt = cwt_1st_mark_count + cwt_2nd_mark_count) %>% 
+  mutate(cwt_dollars = num_cwt * 0.13) %>% 
+  select(brood_year, num_cwt, cwt_dollars)
+```
+
+OK, so, by 2010, we are in the 7.3 million dollar range just for the price of the coded wire.  
+
+Next, we are going to calculate the number of fish that have ad-clips but do not have coded wire
+tags.  We can do this both for unassociated releases and associated releases.  Our strategy is to
+count the number of non-cwt fish with an adclip of any sort (wether it is a first or second mark)
+and then sum those and break them down by year.
+```{r}
+# first get number of adclipped fish with no CWTs
+non_cwts_adclip_vec <- chinook18 %>%
+  mutate(non_cwt_ad1 = grepl("^Adclip", non_cwt_1st_mark) * non_cwt_1st_mark_count,
+         non_cwt_ad2 = grepl("^Adclip", non_cwt_2nd_mark) * non_cwt_2nd_mark_count) %>%
+  select(non_cwt_ad1, non_cwt_ad2) %>% rowSums(na.rm = TRUE)
+
+non_cwts <- tbl_df(cbind(chinook18, non_cwts_adclip_vec = non_cwts_adclip_vec)) %>% 
+  group_by(record_code, brood_year) %>%
+  summarize(non_cwt_adclip = sum(non_cwts_adclip_vec)) %>%
+  dcast(brood_year ~ ...)
+non_cwts
+```
+
+OK, N is the column of non-associated releases and T is column of tagged releases.  Let's compute other costs on that.  We'll assume
+a female chinook produces 4K smolts and that the sex ratio in the hathery is even so that you get 2K smolts for every
+spawner genotyped.  And, let's do $20 per genotype.
+```{r}
+inner_join(cwts, non_cwts) %>%
+  mutate(pbt_dollars_cwt_num = num_cwt * 20 / 2000,
+         pbt_dollars_cwt_N_T = (num_cwt + N + T) * 20 / 2000)
+```
