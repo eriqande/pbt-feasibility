@@ -6,9 +6,15 @@ output: html_document
 ---
 
 ```{r, echo=FALSE, include=FALSE}
+library(knitr)
+opts_knit$set(root.dir = '..')
+```
+
+```{r, echo=FALSE, include=FALSE}
 # load libraries, etc
 library(ggplot2)
 library(lubridate)
+library(stringr)
 library(dplyr)
 library(reshape2)
 ```
@@ -34,6 +40,71 @@ x <- read.csv(unz("~/Downloads/CSV5964.zip", filename = "CSV5964.TXT"), stringsA
 x <- tbl_df(x)
 saveRDS(x, compress = "xz", file = "data/releases.rds") 
 ```
+
+
+
+## Recovery Data
+
+After looking over the release data I decided that it would be best to focus on recent
+years for our comparison.  In particular, recoveries made grom 2002 to 2012 seemed appropriate.
+So, I tried that first for Chinook.  That would have returned 1.4 million rows which is more
+tham RMIS wants to hand out.  It would be preferable if RMIS didn't throttle that.
+So, I tried breaking it into smaller queries, but it is 
+necessary to break it down year by year.  Holy Bagumba!  So that is what I did.  In fact, for 2012
+I had to break it down even further by "Sample Type" and get it in two installments.
+
+Fortunately, the 12 emails resulting from those queries got put in a single thread in gmail and I was 
+able to copy them all into a text file which I have saved in 
+`data_gathering/rmpc_recovery_query_emails.txt`.  We can use R's text processing and system call 
+abilities, and its ability to download files in order to stitch them into a single csv that
+we can then read in.  In fact, let's use the `stringr` package.
+```{r, eval=FALSE}
+email <- readLines("data_gathering/rmpc_recovery_query_emails.txt")
+
+# get the URLs to download the files
+ziplinks <- email[which(str_detect(email, "PKZIP")) + 1] %>% str_trim()
+
+# cycle over those, download, unzip, and read into data frames.
+# download and unzip to a temporary directory so they don't bomb our repo
+td <- tempdir()
+dfs <- lapply(ziplinks, function(x) {
+  fn <- str_replace(x, "http:.*/", "") 
+  fnp <- file.path(td, fn)  # path to download to
+  download.file(x, fnp)
+  unzip(fnp, exdir = td)
+  read.csv(str_replace(fnp, "zip$", "TXT"), stringsAsFactors = FALSE, na.strings = "")
+  })
+
+recoveries <- tbl_df(do.call(rbind, dfs))
+```
+
+Having gotten all that, let us save it compress it.
+```{r, eval=FALSE}
+saveRDS(recoveries, compress = "xz", file = "data/chinook_recoveries.rds")
+```
+It gets whittled down to only about 6.6 MB.  Cool.
+
+Here are the queries for all the data that I got:
+```{r}
+email <- readLines("data_gathering/rmpc_recovery_query_emails.txt")
+cat(email[str_detect(email, "^The query criteria|^AND|^WHERE")], sep = "\n")
+```
+
+
+## Catch Sample data
+The query was:
+```
+WHERE catch_year IN (2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012)
+```
+
+And I processed the results like this:
+```{r, eval=FALSE}
+cs <- read.csv("~/Downloads/CSV10233.TXT", stringsAsFactors = FALSE, na.strings = "")
+catch_sample <- tbl_df(cs)
+saveRDS(catch_sample, compress = "xz", file = "data/catch_sample.rds")
+```
+
+
 ## Location data
 
 I figured it would be feasible to just download the entire location data base.  The query that seemed

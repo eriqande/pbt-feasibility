@@ -248,9 +248,9 @@ tidy18 %>%
   summarize(number_of_fish = sum(count, na.rm = TRUE)) %>%
   ggplot(aes(x = brood_year,
                    y = number_of_fish,
-                   colour = interaction(with_cwt, mark_series),
+                   colour = with_cwt,
                    linetype = record_code,
-                   shape = record_code)) +
+                   shape = factor(mark_series))) +
   geom_line() +
   geom_point()
 ```

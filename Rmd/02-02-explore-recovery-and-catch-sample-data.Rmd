@@ -1,0 +1,36 @@
+---
+title: "Exploring Recovery and Catch-Sample Data"
+author: "Eric C. Anderson"
+date: "November 18, 2014"
+output:
+  html_document:
+    fig_width: 10
+    fig_height: 8
+    toc: yes
+---
+
+```{r, echo=FALSE, include=FALSE}
+library(knitr)
+opts_knit$set(root.dir = '..')
+```
+
+```{r, echo=FALSE, include=FALSE}
+# load libraries, etc
+library(ggplot2)
+library(lubridate)
+library(dplyr)
+library(reshape2)
+source("R/rmis_cleaning.R")
+```
+
+
+## Initial Maneuvers
+
+Here we look at some properties to make sure that we got everything we wanted:
+```{r}
+# load it in
+releases <- readRDS("data/releases.rds")
+dim(releases)
+releases$species <- int_to_factor(releases$species, species_levels())
+```
+

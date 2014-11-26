@@ -1,0 +1,292 @@
+rmpc.admin@psmfc.org
+10:33 AM (6 minutes ago)
+
+to me 
+Your All Recoveries CSV report is complete and can be downloaded in two formats:
+
+1. A text or html file (33,497 KB):
+   http://www.rmis.org/reports/CSV20271.txt
+
+2. A compressed PKZIP file (1,758 KB):
+   http://www.rmis.org/reports/CSV20271.zip
+
+
+This report can also be saved by clicking on the link: ftp.rmis.org or by using
+   this link with FTP client software.  The report will be found in the
+   pub/reports directory and will be named:  CSV20271.txt  or  CSV20271.zip.
+
+
+The query criteria used to produce this report was:
+
+WHERE species = '1'
+AND   recovery_date_year = 2002
+
+
+This is an automated message from the Regional Mark Processing Center.
+If you have questions about this report, please contact the
+RMPC Administrators.
+
+rmpc.admin@psmfc.org
+10:33 AM (6 minutes ago)
+
+to me 
+Your All Recoveries CSV report is complete and can be downloaded in two formats:
+
+1. A text or html file (30,997 KB):
+   http://www.rmis.org/reports/CSV20288.txt
+
+2. A compressed PKZIP file (1,609 KB):
+   http://www.rmis.org/reports/CSV20288.zip
+
+
+This report can also be saved by clicking on the link: ftp.rmis.org or by using
+   this link with FTP client software.  The report will be found in the
+   pub/reports directory and will be named:  CSV20288.txt  or  CSV20288.zip.
+
+
+The query criteria used to produce this report was:
+
+WHERE species = '1'
+AND   recovery_date_year = 2003
+
+
+rmpc.admin@psmfc.org
+10:34 AM (6 minutes ago)
+
+to me 
+Your All Recoveries CSV report is complete and can be downloaded in two formats:
+
+1. A text or html file (32,256 KB):
+   http://www.rmis.org/reports/CSV20306.txt
+
+2. A compressed PKZIP file (1,719 KB):
+   http://www.rmis.org/reports/CSV20306.zip
+
+
+This report can also be saved by clicking on the link: ftp.rmis.org or by using
+   this link with FTP client software.  The report will be found in the
+   pub/reports directory and will be named:  CSV20306.txt  or  CSV20306.zip.
+
+
+The query criteria used to produce this report was:
+
+WHERE species = '1'
+AND   recovery_date_year = 2004
+
+
+rmpc.admin@psmfc.org
+10:34 AM (5 minutes ago)
+
+to me 
+Your All Recoveries CSV report is complete and can be downloaded in two formats:
+
+1. A text or html file (25,308 KB):
+   http://www.rmis.org/reports/CSV20429.txt
+
+2. A compressed PKZIP file (1,374 KB):
+   http://www.rmis.org/reports/CSV20429.zip
+
+
+This report can also be saved by clicking on the link: ftp.rmis.org or by using
+   this link with FTP client software.  The report will be found in the
+   pub/reports directory and will be named:  CSV20429.txt  or  CSV20429.zip.
+
+
+The query criteria used to produce this report was:
+
+WHERE species = '1'
+AND   recovery_date_year = 2005
+
+
+rmpc.admin@psmfc.org
+10:34 AM (5 minutes ago)
+
+to me 
+Your All Recoveries CSV report is complete and can be downloaded in two formats:
+
+1. A text or html file (21,018 KB):
+   http://www.rmis.org/reports/CSV20445.txt
+
+2. A compressed PKZIP file (1,129 KB):
+   http://www.rmis.org/reports/CSV20445.zip
+
+
+This report can also be saved by clicking on the link: ftp.rmis.org or by using
+   this link with FTP client software.  The report will be found in the
+   pub/reports directory and will be named:  CSV20445.txt  or  CSV20445.zip.
+
+
+The query criteria used to produce this report was:
+
+WHERE species = '1'
+AND   recovery_date_year = 2006
+
+
+rmpc.admin@psmfc.org
+10:34 AM (5 minutes ago)
+
+to me 
+Your All Recoveries CSV report is complete and can be downloaded in two formats:
+
+1. A text or html file (21,789 KB):
+   http://www.rmis.org/reports/CSV20460.txt
+
+2. A compressed PKZIP file (1,148 KB):
+   http://www.rmis.org/reports/CSV20460.zip
+
+
+This report can also be saved by clicking on the link: ftp.rmis.org or by using
+   this link with FTP client software.  The report will be found in the
+   pub/reports directory and will be named:  CSV20460.txt  or  CSV20460.zip.
+
+
+The query criteria used to produce this report was:
+
+WHERE species = '1'
+AND   recovery_date_year = 2007
+
+
+rmpc.admin@psmfc.org
+10:35 AM (4 minutes ago)
+
+to me 
+Your All Recoveries CSV report is complete and can be downloaded in two formats:
+
+1. A text or html file (19,107 KB):
+   http://www.rmis.org/reports/CSV20583.txt
+
+2. A compressed PKZIP file (1,005 KB):
+   http://www.rmis.org/reports/CSV20583.zip
+
+
+This report can also be saved by clicking on the link: ftp.rmis.org or by using
+   this link with FTP client software.  The report will be found in the
+   pub/reports directory and will be named:  CSV20583.txt  or  CSV20583.zip.
+
+
+The query criteria used to produce this report was:
+
+WHERE species = '1'
+AND   recovery_date_year = 2008
+
+
+rmpc.admin@psmfc.org
+10:35 AM (4 minutes ago)
+
+to me 
+Your All Recoveries CSV report is complete and can be downloaded in two formats:
+
+1. A text or html file (21,353 KB):
+   http://www.rmis.org/reports/CSV20599.txt
+
+2. A compressed PKZIP file (1,099 KB):
+   http://www.rmis.org/reports/CSV20599.zip
+
+
+This report can also be saved by clicking on the link: ftp.rmis.org or by using
+   this link with FTP client software.  The report will be found in the
+   pub/reports directory and will be named:  CSV20599.txt  or  CSV20599.zip.
+
+
+The query criteria used to produce this report was:
+
+WHERE species = '1'
+AND   recovery_date_year = 2009
+
+
+rmpc.admin@psmfc.org
+10:36 AM (4 minutes ago)
+
+to me 
+Your All Recoveries CSV report is complete and can be downloaded in two formats:
+
+1. A text or html file (28,393 KB):
+   http://www.rmis.org/reports/CSV20619.txt
+
+2. A compressed PKZIP file (1,455 KB):
+   http://www.rmis.org/reports/CSV20619.zip
+
+
+This report can also be saved by clicking on the link: ftp.rmis.org or by using
+   this link with FTP client software.  The report will be found in the
+   pub/reports directory and will be named:  CSV20619.txt  or  CSV20619.zip.
+
+
+The query criteria used to produce this report was:
+
+WHERE species = '1'
+AND   recovery_date_year = 2010
+
+
+rmpc.admin@psmfc.org
+10:36 AM (3 minutes ago)
+
+to me 
+Your All Recoveries CSV report is complete and can be downloaded in two formats:
+
+1. A text or html file (35,118 KB):
+   http://www.rmis.org/reports/CSV20762.txt
+
+2. A compressed PKZIP file (1,736 KB):
+   http://www.rmis.org/reports/CSV20762.zip
+
+
+This report can also be saved by clicking on the link: ftp.rmis.org or by using
+   this link with FTP client software.  The report will be found in the
+   pub/reports directory and will be named:  CSV20762.txt  or  CSV20762.zip.
+
+
+The query criteria used to produce this report was:
+
+WHERE species = '1'
+AND   recovery_date_year = 2011
+
+
+rmpc.admin@psmfc.org
+10:39 AM (1 minute ago)
+
+to me 
+Your All Recoveries CSV report is complete and can be downloaded in two formats:
+
+1. A text or html file (41,739 KB):
+   http://www.rmis.org/reports/CSV21133.txt
+
+2. A compressed PKZIP file (2,007 KB):
+   http://www.rmis.org/reports/CSV21133.zip
+
+
+This report can also be saved by clicking on the link: ftp.rmis.org or by using
+   this link with FTP client software.  The report will be found in the
+   pub/reports directory and will be named:  CSV21133.txt  or  CSV21133.zip.
+
+
+The query criteria used to produce this report was:
+
+WHERE species = '1'
+AND   recovery_date_year = 2012
+AND   sample_type IN ('1','2','3')
+
+
+rmpc.admin@psmfc.org
+10:39 AM (1 minute ago)
+
+to me 
+Your All Recoveries CSV report is complete and can be downloaded in two formats:
+
+1. A text or html file (2,858 KB):
+   http://www.rmis.org/reports/CSV21259.txt
+
+2. A compressed PKZIP file (187 KB):
+   http://www.rmis.org/reports/CSV21259.zip
+
+
+This report can also be saved by clicking on the link: ftp.rmis.org or by using
+   this link with FTP client software.  The report will be found in the
+   pub/reports directory and will be named:  CSV21259.txt  or  CSV21259.zip.
+
+
+The query criteria used to produce this report was:
+
+WHERE species = '1'
+AND   recovery_date_year = 2012
+AND   sample_type IN ('4','5','6','7')
