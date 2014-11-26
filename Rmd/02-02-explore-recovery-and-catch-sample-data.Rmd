@@ -29,8 +29,15 @@ source("R/rmis_cleaning.R")
 Here we look at some properties to make sure that we got everything we wanted:
 ```{r}
 # load it in
-releases <- readRDS("data/releases.rds")
-dim(releases)
-releases$species <- int_to_factor(releases$species, species_levels())
+chin_rec <- readRDS("data/chinook_recoveries.rds")
+dim(chin_rec)
+```
+This accords well with what the RMIS data base tells us when we query All Recoveries for 2002-2012 on chinook:
+```
+Your All Recoveries query retrieved too many rows (1452480)
 ```
 
+Let's grab the catch-sample data too:
+```{r}
+catch_samp <- readRDS("data/catch_sample.rds")
+```
