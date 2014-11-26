@@ -184,3 +184,82 @@ inner_join(cwts, non_cwts) %>%
   mutate(pbt_dollars_cwt_num = num_cwt * 20 / 2000,
          pbt_dollars_cwt_N_T = (num_cwt + N + T) * 20 / 2000)
 ```
+
+
+### Can we tidy this up?
+
+So, having the mark type and then the numbers in those awful columns like `non_cwt_1st_mark_count`
+is kinda lame.  It feels like I'm fighting it the whole way.  I am going to make it tidy.
+
+Making it tidy takes a bit of wrangling.  We basically want to think of something that
+is designed such that if tag_code `12AA5` had 5321 fish that had a cwt and were marked
+with an adclip (as part of the two possible differently-marked cwt groups) and 30000 fish
+that had no cwt and were marked with adclip too, would show up like this:
+```{r, eval=FALSE}
+tag_code      with_cwt      mark_series   mark_type   count
+12AA5              yes                1      adclip    5321
+12AA5               no                1      adclip   30000
+```
+
+I don't know how to do that with reshape2, but I can write some lapply foo and then throw
+an inner join into it that will work out:
+```{r}
+tmp <- chinook18 %>%
+  select(tag_code_or_release_id,cwt_1st_mark:non_cwt_2nd_mark_count)
+
+# now a function that grabs stuff out as need be and makes a small data frame of it:
+grab_it <- function(x, C = "cwt", S = "1st") {
+  with_cwt_v <- unname(c(cwt = "yes", non_cwt = "no")[C])
+  mark_series_v <- as.numeric(substr(S, 1, 1))
+
+  Mark_col <- paste(C, S, "mark", sep = "_")
+  Count_col <- paste(C, S, "mark_count", sep = "_")
+  
+  tt <- data.frame( tag_code_or_release_id = x[["tag_code_or_release_id"]], 
+              with_cwt = with_cwt_v,
+              mark_series = mark_series_v,
+              mark_type = x[[Mark_col]], 
+              count = x[[Count_col]],
+              stringsAsFactors =  FALSE)
+  tt
+}
+
+# then lapply and rbind and drop rows with NAs
+boing <- c(lapply(c("cwt", "non_cwt"), function(z) grab_it(tmp, z, "1st")),
+           lapply(c("cwt", "non_cwt"), function(z) grab_it(tmp, z, "2nd")))
+finally <- na.omit(do.call(rbind, boing))
+
+# and now we can inner_join that 
+tidy18 <- tbl_df(inner_join(finally, select(chinook18, -(cwt_1st_mark:non_cwt_2nd_mark_count))))
+```
+
+Now that we have gone through that crap there, it should be delightfully easy to get the 
+numbers that we want.  For example, the total number of fish with cwts by year:
+```{r}
+tidy18 %>% 
+  group_by(with_cwt, brood_year) %>%
+  summarize(sum(count, na.rm = TRUE))
+```
+
+And, we can recreate the plot of chinook and coho CWT and non-CWT numbers like this:
+```{r}
+tidy18 %>% 
+  group_by(brood_year, record_code, with_cwt, mark_series) %>%
+  summarize(number_of_fish = sum(count, na.rm = TRUE)) %>%
+  ggplot(aes(x = brood_year,
+                   y = number_of_fish,
+                   colour = interaction(with_cwt, mark_series),
+                   linetype = record_code,
+                   shape = record_code)) +
+  geom_line() +
+  geom_point()
+```
+
+OK, so that is nice to have things tidied up.  Now, let's get the total number of ad-clipped fish
+that are either carrying CWTs or not:
+```{r}
+tidy18 %>%
+  filter(grepl("^Adclip", mark_type) ) %>%
+  group_by(brood_year, with_cwt, record_code) %>% 
+  summarize(num_fish = sum(count, na.rm = TRUE))
+```
