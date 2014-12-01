@@ -15,7 +15,15 @@ species_levels <- function() {
   scan("data_defs/psc-4.1/species.txt", what = "character")
 }
 
-
+# return tag_status levels corresponding to integer codes which
+# are preserved here as character names of the vector that gets returned
+tag_status_levels <- function() {
+  tmp <- read.table("data_defs/psc-4.1/recovery_tag_status.txt", row.names = 1, sep = "=", strip.white = TRUE,
+                    quote = "'")
+  ret <- gsub(" *\\(.*$", "", tmp$V2)
+  names(ret) <- gsub("[’‘]", "", rownames(tmp))
+  ret
+}
 
 # return a vector of mark types with their 4-digit identifiers
 # as names

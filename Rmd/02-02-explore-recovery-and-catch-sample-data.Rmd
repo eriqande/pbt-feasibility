@@ -27,7 +27,7 @@ source("R/rmis_cleaning.R")
 ## Initial Maneuvers
 
 Here we look at some properties to make sure that we got everything we wanted:
-```{r}
+```{r, cache=TRUE}
 # load it in
 chin_rec <- readRDS("data/chinook_recoveries.rds")
 dim(chin_rec)
@@ -38,6 +38,66 @@ Your All Recoveries query retrieved too many rows (1452480)
 ```
 
 Let's grab the catch-sample data too:
-```{r}
+```{r, cache=TRUE}
 catch_samp <- readRDS("data/catch_sample.rds")
 ```
+
+### Sizes of catch samples
+First I want to look very crudely at the first-mark sample size vs the first-mark obs adclips:
+```{r}
+ggplot(data = catch_samp) + 
+    geom_point(aes(x = mr_1st_sample_size, y = mr_1st_sample_obs_adclips, color = reporting_agency))
+
+```
+
+OK, that shows us that some of the samples are pretty much all ad-clipped, and some of them are far from being all
+ad-clipped.
+
+Another interesting question then is how many of the adclipped, sampled fish yielded recovered and decoded coded
+wire tags, broken out by Electronic versus Visual detection:
+```{r}
+ggplot(data = catch_samp) + 
+    geom_abline(intercept = 0, slope = 1) +
+    geom_point(aes(x = mr_1st_sample_obs_adclips, y = number_recovered_decoded, color = reporting_agency)) + 
+    facet_wrap(~ detection_method)
+```
+
+OK, since there are so many reporting agencies, and the colors are hard to discern, it would be nice to know how many 
+of the points come from each of the agencies.  Since many rows have been dropped due to missing data, I would
+like to reflect that.
+```{r}
+ff <- filter(catch_samp, !is.na(mr_1st_sample_obs_adclips), !is.na(number_recovered_decoded))
+ggplot(ff, aes(x = reporting_agency, fill = reporting_agency)) + geom_bar() + 
+  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))
+```
+
+OK, that is interesting.  It suggests to me that CDFW and CDFO aren't really listing the number of observed adclips 
+or the number recovered decoded.  So, what if we don't filter and just look at who has the most records.
+```{r}
+ggplot(catch_samp, aes(x = reporting_agency, fill = reporting_agency)) + geom_bar() + 
+  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))
+```
+
+All right, that just shows us that CDFO and CDFW just don't have that many catch-sample records.  That might be 
+because each of their catch samples includes more fish.
+
+So, what we will want to do here is actually count up the number of fish from each agency in the recovery data
+base (splitting them out between status 1 recoveries and otherwise)
+```{r}
+chin_rec$tag_status <- factor(tag_status_levels()[as.character(chin_rec$tag_status)], levels = unname(tag_status_levels()))
+tag_nums <- chin_rec %>%
+  group_by(reporting_agency, tag_status, detection_method) %>% 
+  tally()
+ggplot(tag_nums, aes(x = reporting_agency, y = n, fill = tag_status)) +
+  geom_bar(stat = "identity") +
+  guides(fill = guide_legend(reverse = TRUE)) +
+  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5)) + 
+  facet_wrap(~ detection_method)
+```
+
+That is a nice graphic.  It shows that ADFG and CDFO have real problems with ad-clipped fish that don't have a CWT,
+but only in fisheries that don't use electronic detection (E = electronic, V = visual). OK.  That makes sense.
+
+So, I still feel like I need to try to figure out how the numbers in the catch_sample file relate to the
+tallies that I could make in the recovery data base.
+

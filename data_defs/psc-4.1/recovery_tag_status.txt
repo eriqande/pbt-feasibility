@@ -1,0 +1,7 @@
+		’1’	=Tag read OK  (i.e. tag_code corresponds to a valid CWT release & has no unresolved discrepancies)
+		’2’	=No tag
+		’3’	=Tag lost before read
+		’4’	=Tag not readable
+		’7’	=Unresolved discrepancy (see notes to follow)
+		’8’	=Head not processed
+		‘9’	=Pseudo tag, blank wire
