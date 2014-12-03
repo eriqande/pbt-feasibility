@@ -86,13 +86,13 @@ base (splitting them out between status 1 recoveries and otherwise)
 ```{r}
 chin_rec$tag_status <- factor(tag_status_levels()[as.character(chin_rec$tag_status)], levels = unname(tag_status_levels()))
 tag_nums <- chin_rec %>%
-  group_by(reporting_agency, tag_status, detection_method) %>% 
+  group_by(run_year, reporting_agency, tag_status, detection_method) %>% 
   tally()
 ggplot(tag_nums, aes(x = reporting_agency, y = n, fill = tag_status)) +
   geom_bar(stat = "identity") +
   guides(fill = guide_legend(reverse = TRUE)) +
   theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5)) + 
-  facet_wrap(~ detection_method)
+  facet_wrap(~ run_year + detection_method, ncol = 2)
 ```
 
 That is a nice graphic.  It shows that ADFG and CDFO have real problems with ad-clipped fish that don't have a CWT,
@@ -101,3 +101,14 @@ but only in fisheries that don't use electronic detection (E = electronic, V = v
 So, I still feel like I need to try to figure out how the numbers in the catch_sample file relate to the
 tallies that I could make in the recovery data base.
 
+
+### What is a catch-sample anyway?
+
+Are there multiple catch-samples with the same code (just on different dates, etc?)
+```{r}
+catch_samp %>% 
+  group_by(catch_sample_id) %>%
+  tally() %>%
+  select(n) %>%
+  table()
+```
