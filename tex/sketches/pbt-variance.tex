@@ -1,0 +1,170 @@
+\documentclass[11pt]{article}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{epstopdf}
+\usepackage{amsfonts}
+\usepackage{natbib}
+\usepackage{subfigure}
+\usepackage{pdfsync}
+\usepackage{xspace}
+%\usepackage[pdftex, colorlinks=true,urlcolor=blue]{hyperref}
+%\usepackage{wallpaper}
+
+%%%% HERE IS SOME WATERMARK STUFF
+%\addtolength{\wpXoffset}{-.2in}
+%\CenterWallPaper{1.1}{/Users/eriq/Documents/work/nonprj/WaterMarks/StrictDraftWatermark.eps}
+
+
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+%% My baseurl.  Can be changed as necessary.
+
+
+%% some handy things for making bold math
+\def\bm#1{\mathpalette\bmstyle{#1}}
+\def\bmstyle#1#2{\mbox{\boldmath$#1#2$}}
+\newcommand{\thh}{^\mathrm{th}}
+
+
+%% Some pretty etc.'s, etc...
+\newcommand{\cf}{{\em cf.}\xspace }
+\newcommand{\eg}{{\em e.g.},\xspace }
+\newcommand{\ie}{{\em i.e.},\xspace }
+\newcommand{\etal}{{\em et al.}\ }
+\newcommand{\etc}{{\em etc.}\@\xspace}
+
+
+\newcommand{\CR}{\mathrm{CR}}
+\newcommand{\CWT}{\mathrm{CWT}}
+\newcommand{\PBT}{\mathrm{PBT}}
+\newcommand{\Var}{\mathrm{Var}}
+
+
+%% the page dimensions from TeXShop's default---very nice
+\textwidth = 6.5 in
+\textheight = 9 in
+\oddsidemargin = 0.0 in
+\evensidemargin = 0.0 in
+\topmargin = 0.0 in
+\headheight = 0.0 in
+\headsep = 0.0 in
+\parskip = 0.2in
+\parindent = 0.0in
+
+
+\title{Variance of PBT-based estimators}
+\author{Eric C. Anderson\thanks{
+    Fisheries Ecology Division, 
+    Southwest Fisheries Science Center, 
+    110 Shaffer Road,
+    Santa Cruz, CA 95060}
+}
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Here I've written down some expressions developed for the variance of estimators of contribution rate from PBT that
+take account of the variance in family size.  This is taken from several things I prepared a while ago while collaborating
+on a grant proposal with Shawn Narum and others.
+\end{abstract}
+
+
+Coded wire tag (CWT) data are the primary source of information used to manage Chinook salmon stocks and 
+fisheries coast wide. Tag recoveries in fisheries, in hatcheries, and on spawning grounds provide the data needed 
+to estimate stock-specific mortalities and distributions in ocean fisheries, and the impacts of fishery management 
+actions. Of particular importance is the ability to estimate fishery impacts on stocks of low abundance, as impacts 
+to these stocks typically drive fishery management decisions. Reductions in ocean fisheries combined with low 
+abundance can make detecting fish from these stocks a rare event. Increasing tag numbers in hatchery indicator 
+stocks or sampling fisheries at higher rates can offset these factors to some degree but have their limits.
+One of the many advantages of the PBT approach is the greatly reduced cost of tagging relative to CWTs. 
+Accordingly, PBT may be well-suited to increasing the tagged fraction of low-abundance stocks in a cost-effective
+manner. Higher tagging rates with PBT would enable more precise estimates of the contribution of low-abundance
+stocks in ocean fisheries than current CWT programs (at least for stocks that are not already tagged 
+at a 100\% rate). To quantify the potential gains from using PBT, however, we will need to develop an understanding of the
+ precision of contribution rate and exploitation rate estimators using CWTs or PBT.
+ 
+ 
+The contribution rate, $\CR_{ai}$, is the proportion of fish from stock $i$ present in the ocean from whence the landed 
+fish in fishery $a$ are taken. If it were possible to count the number of fish from stock $i$ harvested in fishery $a$, $\CR_{ai}$ 
+could be estimated as
+\begin{equation}
+\widehat{\CR}_{ai} = \frac{C_{ai}}{C_a}
+\label{eq:crai-1}
+\end{equation}
+where,
+\begin{eqnarray*}
+\widehat{\CR}_{ai} & = & \mbox{the estimated contribution rate of fish from stock}~i~\mbox{in fishery}~a \\
+C_{ai}                    & = &  \mbox{the number of fish from stock}~i~\mbox{landed in fishery}~a \\
+C_a                       & = &  \mbox{the total catch in fishery}~a.
+\end{eqnarray*}
+
+
+Of course, $C_{ai}$ is typically not known, as it is usually difficult to distinguish fish from different stocks. 
+Therefore it is customary to modify (\ref{eq:crai-1}) by using an estimate of $C_{ai}$, \ie 
+\begin{equation}
+\widehat{\CR}_{ai} = \frac{\widehat{C}_{ai}}{C_a}
+\label{eq:crai-2}
+\end{equation}
+with  $\widehat{C}_{ai}$ being estimated using fish known to be from stock $i$ through some sort of tagging
+effort.  In the case of CWTs  $C_{ai}$ can be estimated by:
+\begin{equation}
+\widehat{C}_{ai} = \frac{\CWT_{ai}}{s_a\theta_i}.
+\end{equation}
+where $\CWT_{ai}$ is the number of CWT recoveries from stock $i$ in fishery $a$, $s_a$ is the
+fraction of the fishery sampled 
+for CWTs, and $\theta_i$ is the tag fraction of stock $i$ at release. Often, tag fractions are
+cohort specific, but for now we will assume a constant tag fraction across all brood 
+years represented.
+
+
+Using the model implicit in \citet{Ber&Cla1996}'s large-sample variance approximation for
+their estimator of $C_{ai}$ (called $\hat{r}_{ai}$ in their equation 6), the variance of
+$\widehat{\CR}_{ai}$ can be derived as:
+\begin{equation}
+\Var(\widehat{\CR}_{ai}) = 
+\frac{ \CR_{ai} (1 - \CR_{ai})}{C_a} +
+\frac{C_{ai}(1 - s_a\theta_i)}{C_a s_a \theta_i}
+\label{eq:cwt-var}
+\end{equation}
+
+Once  a tag is decoded, hatchery origin and age are assumed to be known without error. This equation can be 
+used to predict the precision of CWT-based estimates of contribution rate for any given true values of $\CR_{ai}$, and 
+known values of $s_a$ and $\theta_i$. It shows that, for a given contribution rate, larger tagging and sampling fractions will 
+result in smaller variances.
+
+
+A similar approach can be taken to derive the precision of estimates of the contribution rate when the tagging of 
+fish is done via PBT, but the tagging rate, $\theta_i$, must be handled a little differently. Using PBT, the tagging rate is a 
+function of two things: 1) $A_i$, the fraction of parent pairs from stock $i$ included in the parent data base, and 2) $\mu_i$, 
+the probability that an individual with both parents in the data base is not successfully assigned to its parents 
+(i.e., the ?false negative rate?). A straightforward calculation gives $\theta_i = A_i(1-\mu_i)$. Currently, $\mu_i$
+is not well studied for 
+most hatcheries, though work in our lab suggests that it is on the order of 3\% for the hatcheries we have 
+studied closely. Methods are in 
+development that allow uncertainty in parental assignments to be integrated into the estimation, which will, anyway, 
+reduce the effect of uncertainty in $\mu_i$ on the variance of $\CR_{ai}$. Nonetheless, a reasonable range
+to expect for $\mu_i$ is about 1\% to 10\%.
+
+Unfortunately, $A_i$ cannot be observed without some error. By keeping careful track of the number of fish spawned 
+each day at a hatchery, and the number of genotypes successfully obtained from those fish, it is possible to 
+calculate $E_i$---the expected value of $A_i$---but the actual value is a random variable that reflects the fact that there 
+is variance in the size of different families in a salmon population.
+Accordingly, with PBT, an unbiased estimator for the contribution rate is
+\begin{equation}
+\widehat{\CR}_{ai} = \frac{\PBT_i }{C_a s_a E_i(1-\mu_i)}
+\end{equation}
+where $\PBT_i$ is the number of fish identified to stock $i$ using PBT. When the variance of this estimator is derived 
+using the same assumptions that lead to (\ref{eq:cwt-var}) for CWTs
+we find, a similar-looking expression, with a few extra terms for the dependence on the
+variance of $A_i$:
+\begin{equation}
+\Var(\widehat{\CR_{ai}}) =  \frac{\CR_{ai}[1-\CR_{ai}(\sigma^2_A + E_i^2)E_i^{-2}]}{C_a} + \frac{\CR_{ai}}{C_a s_a E_i (1-u_i)}\biggl(1-s_a E_i (1-u_i)\biggr) + \CR_{ai}^2 \frac{\sigma^2_A}{E^2_i},
+\end{equation}
+where $\sigma^2_A$ is the variance of $A_i$.  Note that setting $E_i(1-u_i)=\theta_i$
+and $\sigma^2_A=0$ recovers the original expression for CWTs.
+
+
+\bibliography{../bibstuff/pbtfeas}
+\bibliographystyle{../bibstuff/men}
+ \end{document}
