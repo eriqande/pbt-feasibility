@@ -112,3 +112,24 @@ catch_samp %>%
   select(n) %>%
   table()
 ```
+
+### Let's focus on a smaller subset
+
+I am curious about how many of the no-CWT fish in CDFO's visual samples are from hatcheries that do have some tagging, and how many are unassociated releases.  I think now is a good time to drill down and focus on just one
+handful of recoveries, before scaling back up to everything.
+
+So, some initial looks:
+```{r}
+
+# looks like we can filter down to one location for fun
+cana <- catch_samp %>% 
+  filter(reporting_agency == "CDFO", catch_year == 2012, catch_location_code == "2MN06")
+
+# where is that?
+locs <- tbl_df(read.csv("data/locations.csv", stringsAsFactors = F, na.strings = ""))
+locs %>% filter(location_code == "2MN06")
+
+# Catch Region 6:  That is informative....not!
+```
+So, it is really interesting to look closely at all of these records in `cana`.  I don't quite understand how they are recovering more CWTs in some of the fisheries than they observed ad-clips.  Are they doing some sort of electronic detection? No, they aren't.  So whey are there these discrepancies.  I'll have to look into this.
+
