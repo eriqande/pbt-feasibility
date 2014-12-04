@@ -133,3 +133,23 @@ locs %>% filter(location_code == "2MN06")
 ```
 So, it is really interesting to look closely at all of these records in `cana`.  I don't quite understand how they are recovering more CWTs in some of the fisheries than they observed ad-clips.  Are they doing some sort of electronic detection? No, they aren't.  So whey are there these discrepancies.  I'll have to look into this.
 
+```{r}
+# have a look at this particular fishery:
+chin_rec %>% filter(catch_sample_id == "00061125", run_year == 2012) %>% group_by(tag_status) %>% tally()
+
+# those are the numbers we see in cana, I am pretty sure.  But 
+# the discrepancy between these numbers and the number of ad-clipped fish
+# observed must be because the ad-clip status is not well
+# known for many of them,
+chin_rec %>% filter(catch_sample_id == "00061125", run_year == 2012) %>% group_by(tag_status, recorded_mark) %>% tally()
+```
+
+Here we can get the number of recovered ones for each year and catch sample id:
+```{r}
+cana %>% 
+  select(catch_year, catch_sample_id, starts_with("number_recovered")) %>% 
+  reshape2::melt(id.vars = c("catch_year", "catch_sample_id"), na.rm = TRUE) %>%
+  arrange(catch_sample_id)
+```
+It would be pretty easy to compare these to what we have in the recovery data base, and also check the mark codes on those fish.
+
