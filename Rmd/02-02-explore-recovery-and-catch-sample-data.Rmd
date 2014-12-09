@@ -20,6 +20,7 @@ library(ggplot2)
 library(lubridate)
 library(dplyr)
 library(reshape2)
+library(stringr)
 source("R/rmis_cleaning.R")
 ```
 
@@ -153,3 +154,70 @@ cana %>%
 ```
 It would be pretty easy to compare these to what we have in the recovery data base, and also check the mark codes on those fish.
 
+
+## Looking at locations of location codes
+
+This is partly as a project to show to the R class.  Here is what I want to do:
+
+1. Find all the location codes from which chinook were recovered in 2000 to 2012.
+2. Parse those codes into their constituent parts
+3. Filter them down to just the marine catch and effort locations that have lat-longs.
+4. Then for each state/province, plot all of the location codes, but color the points according to 
+sector, or area, etc.  Just to see how they are aggregated into different sectors and areas.
+
+### Getting the data frame together
+
+The locations are currently called `locs` apparently.  So, let's get only those from which we have 
+chinook recoveries in chin_rec
+```{r}
+dim(locs)
+rec_locs <- locs %>%
+  filter(location_code %in% chin_rec$recovery_location_code)
+dim(rec_locs)
+```
+Cool! We are now down to `nrow(rec_locs)` location codes. 
+
+Now, we want to parse the codes into their constituent parts. Some of the codes only use the first 
+eight characters or so.  Therefore I pad everything out to 18 characters with "---"'s at the right
+hand end.
+```{r}
+tmp <- rec_locs$location_code %>%
+  str_pad(width = 19, side = "right", pad = "-") %>%
+  str_match("^([1-7])([MF])(.)(..)(....)(.{7})(...)$") %>%
+  as.data.frame(stringsAsFactors = FALSE)
+
+parsed_codes <- setNames(tmp[,-1], c("state_or_province",
+                                     "water_type",
+                                     "sector",
+                                     "region",
+                                     "area",
+                                     "location",
+                                     "sub_location"))
+
+# and add this on 
+rec_locs_full <- cbind(parsed_codes, rec_locs) %>% tbl_df
+```
+
+
+### Filter it to BC marine recovery locations
+Should be easy:
+```{r}
+bcm_locs <- rec_locs_full %>%
+  filter(state_or_province == "2", water_type == "M")
+```
+Cool, that is `nrow(bcm_locs)` locations. But we want to ditch the ones with no lat or long:
+```{r}
+bc_sites <- bcm_locs %>%
+  filter(!is.na(latitude), !is.na(longitude))
+
+# and while we are at it, let's tally those up
+bc_sites %>%
+  group_by(sector, region, area) %>%
+  tally()
+```
+
+All right! That looks like the goods.  42 separate areas in BC.  That seems like it would be a reasonable
+level of aggregation.  Let's send those to rep-res-course to plot them.
+```{r}
+saveRDS(bc_sites, file = "bc_sites.rds", compress = "xz")
+```
