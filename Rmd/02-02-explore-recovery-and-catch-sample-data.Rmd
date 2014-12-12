@@ -178,7 +178,7 @@ dim(rec_locs)
 Cool! We are now down to `nrow(rec_locs)` location codes. 
 
 Now, we want to parse the codes into their constituent parts. Some of the codes only use the first 
-eight characters or so.  Therefore I pad everything out to 18 characters with "---"'s at the right
+eight characters or so.  Therefore I pad everything out to 19 characters with "---"'s at the right
 hand end.
 ```{r}
 tmp <- rec_locs$location_code %>%

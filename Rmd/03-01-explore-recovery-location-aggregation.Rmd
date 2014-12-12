@@ -1,0 +1,243 @@
+---
+title: "Explore Recovery Location Aggregation"
+author: "Eric C. Anderson"
+date: "November 18, 2014"
+output:
+  html_document:
+    fig_width: 10
+    fig_height: 8
+    toc: yes
+---
+
+```{r, echo=FALSE, include=FALSE}
+library(knitr)
+opts_knit$set(root.dir = '..')
+```
+
+```{r, echo=FALSE, include=FALSE}
+# load libraries, etc
+library(ggplot2)
+library(lubridate)
+library(stringr)
+library(reshape2)
+library(dplyr)
+source("R/rmis_cleaning.R")
+```
+
+
+
+
+## Parsing the codes
+
+The location codes are maintained by different jurisdictions and I fear that they probably
+all use different conventions for a variety of things, but there is a degree of standardization.
+
+The PSC 4.1 specification (pg 41) states that the location codes at 19-character primary keys for 
+the location data base.  Cool.  Here are the specs for the meanings of the alphanumeric characters.
+In the following list, the number in parens gives the number of characters for each subpart of the code.
+
+a. Level 0; State or Province (1) The first character must match one of the following: 
+    + ’1’ =Alaska
+    + ’2’ =British Columbia / Yukon
+    + ’3’ =Washington
+    + ’4’ =Idaho
+    + ’5’ =Oregon
+    + ’6’ =California
+    + ’7’ =High Seas
+b. Level 1; Water Type (1)
+    + 'M' =Marine
+    + 'F' =Freshwater
+c. Level 2; Sector (1) 
+d. Level 3; Region (2) 
+e. Level 4; Area (4) 
+f. Level 5; Location (7) 
+g. Level 6; Sub-Location (3)
+
+Obviously it will be advantageous to break these up into separate columns---a job for
+regular expressions.  Let's do it:
+```{r}
+# get the chinook recoveries
+chin_rec <- readRDS("data/chinook_recoveries.rds")
+
+# get the location data base:
+locs <- tbl_df(read.csv("data/locations.csv", stringsAsFactors = F, na.strings = ""))
+
+# filter the location data base to only those that
+# occur int he chinook recoveries from 2000 to 2012
+recov_locs <- locs %>%
+  filter(location_code %in% chin_rec$recovery_location_code)
+```
+That gives us `dim(recov_locs)` recovery locations that we will play with.  
+
+Now, we want to parse the codes into their constituent parts. Some of the codes only use the first 
+eight characters or so.  Therefore I pad everything out to 19 characters with "---"'s at the right
+hand end.
+```{r}
+tmp <- recov_locs$location_code %>%
+  str_pad(width = 19, side = "right", pad = "-") %>%
+  str_match("^([1-7])([MF])(.)(..)(....)(.{7})(...)$") %>%
+  as.data.frame(stringsAsFactors = FALSE)
+
+parsed_codes <- setNames(tmp[,-1], c("state_or_province",
+                                     "water_type",
+                                     "sector",
+                                     "region",
+                                     "area",
+                                     "location",
+                                     "sub_location"))
+
+# and add this on and ditch the freshwater recoveries
+recov_locs <- cbind(parsed_codes, recov_locs) %>%
+  tbl_df() %>% 
+  filter(water_type == "M") # only do marine spots
+```
+
+Now, I want to see what the heck all of these look like, and whether some jurisdictions even use all of the fields.
+```{r}
+recov_locs %>% 
+  arrange( state_or_province, water_type, sector, region, area, location, sub_location) %>% 
+  select(state_or_province:sub_location, latitude, longitude, description) %>%
+  write.csv("tmp_location_code_synoptic.csv")
+```
+And also, let's count up how many different "Areas" there are and how many locations and sublocations in each:
+```{r}
+recov_locs %>% 
+  group_by(state_or_province, sector, region, area) %>%
+  tally() %>%
+  write.csv("tmp_locations_by_area.csv")
+```
+If you look at that, it appears there must be some labeling errors on some of the areas
+but that `area` is probably a suitable level of aggregation for what we want to do.  Although it
+might be the case that we will be better off doing it by sector in CA and doing something different
+in CA.
+
+I guess it would be worth looking at the average number of CWTs recovered in each of these areas from
+2000 to 2012.  Let's do that.
+
+### Average number of valid CWT recoveries by area
+To do this, we are going to want to create a code for each area that includes all the higher
+level info in it.  Something like this:
+```{r}
+recov_locs %>% 
+  mutate(area_code = str_sub(location_code, 1, 9)) %>%
+  group_by(area_code) %>%
+  tally() %>%
+  arrange(area_code)
+```
+That looks good, so now we just have to tally up the status-1 CWT recoveries by this and do a join.
+```{r}
+ave_rec_by_area <- chin_rec %>% 
+  filter(tag_status == 1, str_sub(recovery_location_code, 2, 2) == "M") %>%
+  mutate(area_code = str_sub(recovery_location_code, 1, 9)) %>%
+  group_by(area_code) %>%
+  tally() %>%
+  mutate(ave_recoveries = n/13)
+
+# make a histogram of them (for < 200 recoveries)
+ave_rec_by_area %>%
+  filter(ave_recoveries <= 200) %>% 
+  ggplot(data = ., mapping = aes(x = ave_recoveries)) + geom_histogram(binwidth = 5)
+
+ave_rec_by_area %>%
+  write.csv("tmp_candidate_recovery_location.csv")
+```
+So, the vast majority of those areas have seen an average of only 5 CWT recoveries _for the whole year_!
+Which means about one per month in a five month fishing season.  That is lousy.  I wonder where most of those low-recovery areas are:
+```{r}
+ave_rec_by_area %>%
+  filter(ave_recoveries <= 5) %>%
+  arrange(area_code) %>%
+  as.data.frame
+```
+
+Man, they are all over the place.
+
+
+## A new strategy
+
+I think that I am going to have to step back here a bit.  It is important to keep in mind that the first task here is
+to reconstitute the proportions of fish from different release groups that one might encounter in a fishery in any
+particular area.  For this purpose, it is important to have a large sample of recovered CWTs so that as many different
+release groups that might occur in the area are represented.  Once we have these estimated proportions for a given
+area (or I could think up some sort of name, like "agglomerate," used as a noun) then we can simulate a catch sample
+for any stratum within that agglomerate and simulate the number of fish that have CWTs, how many are adlipped, how
+many are mass-marked, etc, and from that we can do all sorts of things like compute the number of tag recoveries
+if fish were PBT tagged and no electronic detection was done, etc.
+
+I am tempted to aggregate over all times during the year, given how sparse some of the areas are, and how
+inconsistently-coded the temporal strata are across agencies.  I suspect that in some places the fishing season is
+pretty short anyway.  Let's look at the distribution of number of CWT recoveries by month for all the different
+agencies, across 2000 to 2012:
+```{r}
+chin_rec %>%
+  mutate(water_type = str_sub(recovery_location_code, 2, 2)) %>%
+  mutate(rec_date_lube = ymd(recovery_date), month = month(rec_date_lube, label = TRUE)) %>%
+  ggplot(data = ., mapping = aes(x = month, fill = water_type)) + 
+    geom_bar() + facet_wrap(~ reporting_agency) + 
+    theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+Yeah.  So, I am comfortable just lumping three to four months together.  Surely there is 
+month to month variation, but unless you are at the mouth of a river where everyone is going
+back to one river, I suspect it will be fine to just lump things together.
+
+### Agglomerating to samples of 500+
+So, I think it would be appropriate to agglomerate adjacent catch locations into groups
+that have at least 500 CWT recoveries in 2012 (I figure now that we might as well
+just do a single recent year, because that will have all the latest mass-marking
+influence, etc.)
+```{r}
+# get just the 2012's
+chin_rec_2012 <- chin_rec %>%
+  filter(run_year == 2012)
+```
+
+Here is the strategy I will take:
+
+1. group by area (first 9 characters of location code)
+2. Any such group with more than 500 recoveries becomes its own
+agglomerate. We set it aside.
+3. We take the remaining areas and we group them by region.
+4. Then we arrange them alphabetically and lump them together so
+that each successive group has 500 or more in them
+5. If they last one within a region has less than 500 in it, then
+stuff it into the previous group
+
+This is going to take me to the limit of my dplyr knowledge...
+
+```{r extrac-large-aggloms}
+# get the areas that are over 500 CWTs in the ocean
+tmp <- chin_rec_2012 %>% 
+  filter(tag_status == 1, str_sub(recovery_location_code, 2, 2) == "M") %>%
+  mutate(area_code = str_sub(recovery_location_code, 1, 9)) %>%
+  group_by(area_code) %>%
+  tally() %>%
+  mutate(stands_alone = n >= 500)
+
+big_aggloms <- tmp %>%
+  filter(stands_alone == TRUE)
+
+small_aggloms <- tmp %>%
+  filter(stands_alone == FALSE)
+```
+
+It appears to me that there are lots of typos on those, because I think some of them have
+spaces in the beginnings rather than at the end, etc.  But I don't want to trim those
+because they are what I have to get back to the original samples and locations.  
+
+OK, here is what I will do...I will group them by the first number on each of them, which will
+at least group them to the reporting agency
+```{r}
+small_aggloms %>%
+  mutate(agency = str_extract(area_code, "^ *([1-7])")) %>%
+  group_by(agency) %>%
+  mutate(cusum = cumsum(n)) %>% 
+  mutate(pre_agglom = (cusum %/% 500) + 1) %>% 
+  group_by(agency, pre_agglom) %>%
+  mutate(aggsum = cumsum(n)) %>%
+  mutate(agglom = paste("agg-small", agency, pre_agglom, sep="-")) %>%
+  as.data.frame
+```
+
+
+
