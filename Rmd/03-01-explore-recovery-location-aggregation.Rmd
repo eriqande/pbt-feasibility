@@ -228,16 +228,70 @@ because they are what I have to get back to the original samples and locations.
 OK, here is what I will do...I will group them by the first number on each of them, which will
 at least group them to the reporting agency
 ```{r}
-small_aggloms %>%
+smag <- small_aggloms %>%
   mutate(agency = str_extract(area_code, "^ *([1-7])")) %>%
   group_by(agency) %>%
   mutate(cusum = cumsum(n)) %>% 
   mutate(pre_agglom = (cusum %/% 500) + 1) %>% 
   group_by(agency, pre_agglom) %>%
   mutate(aggsum = cumsum(n)) %>%
-  mutate(agglom = paste("agg-small", agency, pre_agglom, sep="-")) %>%
-  as.data.frame
+  mutate(agglom = paste("agg-small", agency, pre_agglom, sep="-"))
+```
+
+Now, we want to get a data frame that has just the area_codes and the names of the aggloms
+on them too:
+```{r}
+
+bagg <- big_aggloms %>%
+  mutate(agency = str_extract(area_code, "^ *([1-7])")) %>%
+  mutate(agglom = paste("big_agglom", agency, 1:nrow(big_aggloms), sep = "-"))
 ```
 
 
+### How many release groups recovered amongst those aggloms?
 
+To figure this out we first inner-join the 2012 chinook recoveries on area code with 
+`small_aggloms` and `big_aggloms`:
+```{r}
+
+aggloms <- rbind(
+    bagg,
+    smag %>% ungroup() %>% select(one_of(names(bagg)))
+  )
+
+cr2012_with_area_code <- chin_rec_2012 %>%
+  filter(tag_status == 1, str_sub(recovery_location_code, 2, 2) == "M") %>%
+  mutate(area_code = str_sub(recovery_location_code, 1, 9)) %>%
+  inner_join(x =., y = aggloms, by = "area_code")
+```
+
+And then, with that done, we count up the release group codes for each
+area code:
+```{r}
+num_of_each_tag_code_by_agglom <- cr2012_with_area_code %>%
+  rename(num_locations = n) %>%
+  group_by(agglom, tag_code) %>%
+  tally(sort = TRUE)
+num_of_each_tag_code_by_agglom
+```
+
+I get the impression that a lot of these release groups are seen only once in any agglom.  In fact, we can compute the number of individuals in each agglom that are from a release group
+that is seen only once:
+```{r}
+num_fish_from_singly_observed_release_group <- num_of_each_tag_code_by_agglom %>% 
+  filter(n==1) %>%
+  tally() %>%
+  rename(num_singleton_tag_codes = n)
+
+num_all_fish_in_agglom <- num_of_each_tag_code_by_agglom %>% 
+  tally() %>%
+  rename(tot_num_fish = n)
+
+inner_join(num_all_fish_in_agglom, num_fish_from_singly_observed_release_group, by = "agglom") %>%
+  as.data.frame
+```
+
+So, this might indicate that it is going to be hard to model each area with a Dirichlet
+distribution based on the observed CWTs, because, in fact, it might be that a substantial
+fraction of the of the fish swimming around are ones from a release group that has just not
+been observed.  We could model that, perhaps, with a Dirichlet process.  

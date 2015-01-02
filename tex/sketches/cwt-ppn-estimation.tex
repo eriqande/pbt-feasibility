@@ -1,0 +1,227 @@
+\documentclass[11pt]{article}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{epstopdf}
+\usepackage{amsfonts}
+\usepackage{natbib}
+\usepackage{subfigure}
+\usepackage{pdfsync}
+\usepackage{xspace}
+%\usepackage[pdftex, colorlinks=true,urlcolor=blue]{hyperref}
+%\usepackage{wallpaper}
+
+%%%% HERE IS SOME WATERMARK STUFF
+%\addtolength{\wpXoffset}{-.2in}
+%\CenterWallPaper{1.1}{/Users/eriq/Documents/work/nonprj/WaterMarks/StrictDraftWatermark.eps}
+
+
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+%% My baseurl.  Can be changed as necessary.
+
+
+%% some handy things for making bold math
+\def\bm#1{\mathpalette\bmstyle{#1}}
+\def\bmstyle#1#2{\mbox{\boldmath$#1#2$}}
+\newcommand{\thh}{^\mathrm{th}}
+
+
+%% Some pretty etc.'s, etc...
+\newcommand{\cf}{{\em cf.}\xspace }
+\newcommand{\eg}{{\em e.g.},\xspace }
+\newcommand{\ie}{{\em i.e.},\xspace }
+\newcommand{\etal}{{\em et al.}\ }
+\newcommand{\etc}{{\em etc.}\@\xspace}
+
+
+\newcommand{\CR}{\mathrm{CR}}
+\newcommand{\CWT}{\mathrm{CWT}}
+\newcommand{\PBT}{\mathrm{PBT}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\btheta}{\bm{\theta}}
+
+%% the page dimensions from TeXShop's default---very nice
+\textwidth = 6.5 in
+\textheight = 9 in
+\oddsidemargin = 0.0 in
+\evensidemargin = 0.0 in
+\topmargin = 0.0 in
+\headheight = 0.0 in
+\headsep = 0.0 in
+\parskip = 0.2in
+\parindent = 0.0in
+
+
+\title{Estimation of mixed fishery proportions \\
+from CWT data}
+\author{Eric C. Anderson\thanks{
+    Fisheries Ecology Division, 
+    Southwest Fisheries Science Center, 
+    110 Shaffer Road,
+    Santa Cruz, CA 95060}
+}
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+It seems clear to me that if we are to really get a good sense of whether PBT can
+deliver what is currently achieved with CWTs, we are going to have to simulate 
+mixed fisheries upon the entire coast and then simulate the sampling within under
+a variety of tagging rates of different stocks, etc.  In this way one can compare the
+number of recoveries of PBT-tagged fish to those that would be recovered through the use
+of CWTs, and we will be able to incorporate the effects of mass-marking and the use
+(or not) of electronic detection, \etc  In order to conduct this type of simulation
+it will be necessary to know the relative frequency of fish from each CWT-ed stock
+in numerous fisheries.  This document documents my approach to this estimation.
+\end{abstract}
+
+\section{Introduction}
+We are interested in what we will call $\theta_g$, the probability that a fish sampled randomly
+from the ocean within a given fishery stratum (the dependence on a given stratum is implied to avoid subscript
+overload) is from release group $g$.  For our purposes here, a release group is defined as
+a tag code, because the intel we get from the CWT community (whether universally applicable or not) is that
+it is essential to be able to track every single release group down to the level of tag code.  We
+will think of tag codes, $g$, as being indexed from 1 up to $G$ for the $G$ possible tag codes
+that could turn up in a fishery in the given year. 
+We also include two important categories:
+\begin{description}
+\item{$M$:}~~Fish that are ad-clipped ($M$ for ``mass-marked'') but which are not associated
+with any tag code.
+\item{$U$:}~~all stocks which are not associated with a release group and which are 
+{\em unmarked}---In other words, wild fish
+that are not tagged, fish from hatcheries that are not CWT-d, and not ad-clipped, etc.)
+\end{description}
+Note that for the purposes of the analyses I am pursuing, recoveries of pseudo-tags
+or agency-only wire will be considered to be fish that are not associated with any tag code (and they
+can be either marked or unmarked). Thus, we denote the parameter we are interested in as $\btheta = (\theta_1,\ldots,\theta_{G},
+\theta_M, \theta_U)$ and we note that 
+\[
+\theta_M + \theta_U + \sum_{g=1}^{G} \theta_g = 1.
+\] 
+Note that for the purposes here, we will consider a fish to be marked if it has an ad-clip (whether or
+not in combination with another mark).  For my analyses I will ignore other marks.
+
+Each release group $g$ is assumed to have a marked fraction, $f^{(m)}_g$ and an unmarked fraction, $f^{(u)}_g$, 
+such that $0 \leq f^{(m)}_g, f^{(u)}_g \leq 1$ and $f^{(m)}_g + f^{(u)}_g = 1$. Associated with each of these fractions is a CWT tagging rate, $p$.  So, $p^{(m)}_g$ denotes the
+fraction of the marked fish from release group $g$ that carry CWTs, and $p^{(u)}_g$ denotes the fraction
+of unmarked fish from release group $g$ that carry CWTs; $0 \leq p^{(m)}_g, p^{(u)}_g \leq 1$
+and $p^{(m)}_g + p^{(u)}_g = 1$.
+
+It is worth noting that with $\btheta$, and the $f$'s and $p$'s in hand, we ought to be able to
+write down a number of probabilities relevant to sampling these fisheries.  For example:
+\begin{enumerate}
+\item The fraction of marked fish in the fishery.  Call that, $\psi_M$:
+\[
+\psi_M = \theta_M + \sum_{g=1}^G \theta_g f^{(m)}_g,
+\]
+\item The fraction of unmarked fish in the fishery, $\psi_U$:
+\[
+\psi_U = 1- \psi_M = \theta_U + \sum_{g=1}^G \theta_g f^{(u)}_g,
+\]
+\item The fraction of fish in the fishery that carry CWTs (remember that blank wire does not
+count as a CWT):
+\[
+\psi_C = \sum_{g=1}^G \theta_g(f^{(m)}_g p^{(m)}_g + f^{(u)}_g p^{(u)}_g),
+\]
+\item The fraction of fish in the fishery that don't carry CWTs:
+\[
+\psi_{\not{C}} = \theta_M + \theta_U + \sum_{g=1}^G \theta_g[f^{(m)}_g (1 - p^{(m)}_g) + f^{(u)}_g (1-p^{(u)}_g)],
+\]
+\end{enumerate}
+and so on. 
+
+\section{Estimation}
+
+Of course, we are not so much interested in computing probabilities like those listed above as we are 
+with {\em estimating} $\btheta$.  I am going to pursue estimation of $\btheta$ from within the Bayesian
+framework because I want to take samples from the posterior, and also because it seems that it will
+provide a nice, coherent way of dealing with the many different data sources and the variety of 
+latent variables in this estimation problem.
+
+It is important to understand that I will be agglomerating different fishery strata in order to obtain
+relatively large samples of CWTs with which to estimate $\btheta$.  In such cases I will assume that
+$\btheta$ is identical across all agglomerated strata.  This is obviously a simplification, but it also
+simply does not make sense to estimate a separate $\btheta$ for every stratum.  The other consequence
+of this policy is that I will likely end up using both visually and electronically detected samples, together, to estimate any particular $\btheta$.  Thus, we would like our estimation method to
+appropriately weight information from each type of sample.  I believe the Bayesian framework I
+describe below achieves that.
+
+\subsection{Missing data formulation}
+We can develop our estimation framework by noticing that what is really missing here is information
+that would make the estimation problem quite easy---namely, if we knew the release group of every
+fish we sampled (whether it had a CWT or an ad-clip or not).  In that case, we would have a simple multinomial
+formulation with a Dirichlet prior.  Of course, we don't know the release group of every sampled
+fish---that is missing!  But we can easily formulate a way to sample over those origins given
+everything else we know about that fish.  
+
+So, for every fish that is handled in some way (either visually inspected for an ad-clip or
+electronically scanned for a CWT, we can sample over that crucial piece of missing data.  
+
+\subsection{The data (missing and otherwise) for each ``sampled'' fish}
+
+For each fish that is sampled (basically someone looks at it to see if it has a mark, or they
+run it through a metal detector to see if it beeps, here is what we shall keep track of (and
+update/impute as necessary).
+
+\begin{description}
+	\item [How sampled?]  It gets a ``V'' if it was visually sampled or an E if electronic.  There should
+	not be any NA's here.
+	\item [Did it beep?] True/False, only relevant if ``How sampled" is E.  This could be NA but it probably
+	shouldn't be.
+	\item [Ad-clipped?]  True/False.  An ad-clip, even in combination with any other marks is still counted
+	as just an ad-clip.  There can be NAs here. Note that an NA means that the fish was either not
+	inspected for a mark, or it was and its marks status was ambiguous.
+	\item [CWT status:] This stores the tag\_code of the CWT or other information.  The possibilities are:
+	\begin{enumerate}
+		\item A tag code
+		\item Not present (i.e. not tag found in the fish)
+		\item Tag present but not readable (this will be any category like tag-not readable, or tag
+		recovered and then lost, etc.
+		\item NA --- This signifies that it is unknown if the fish actually had a CWT or not.
+	\end{enumerate}
+
+\end{description}
+
+
+I think that pretty much does it for the missing data.  Given an estimate of $\btheta$ and the $f$'s and $p$'s we should be able to compute the joint posterior for all of these possibilities, which means
+we can totally sample over them.  Cool!
+
+
+
+
+
+
+There are several different sampling scenarios that must be accommodated.
+\subsection{Visual sampling only}
+In this scenario, $N_t$ fish are inspected in the fishery and $N_m$ of those are found to have
+ad-clips (\ie are found to be marked).  Then, a number $s_m$ of the $N_m$ marked fish are
+processed for CWTs.  Let $n_g$ be the number of CWTs recovered from release group $g$ in this 
+manner, so that, of course, $s_m = \sum_{g=1}^G n_g$. Denote the whole collection of $n_g$'s by $\bm{n}$.  In this case, it appears to me that the
+likelihood for $\theta$ can be written down as:
+\[
+p(N_m, \bm{n} | \btheta) = \psi_M ^ {N_m} \psi_U ^ {N_t - N_m} \prod_{g=1}^G (\theta_g f^{(m)}_g
+p^{(m)}_g)^{n_g}
+\]
+though that is not complete because it needs to have a term for the marked fish with no coded wire
+tag.  Hmm...this looks good though.  I think we can deal with all of these thing through Gibbs
+sampling of a missing data model where the the missing data is the release group of origin of
+each fish.  Clearly, with an estimate of $\btheta$ and knowing the $f$'s and $p$'s we can compute
+a full conditional for the origin of each fish in the sample, whether they had a CWT or not...
+
+I think that will be the way forward.
+
+
+
+\section{Other}
+While $\btheta$ may be what we want to estimate, typically it is easier to estimate quantities
+that we will denote by $\phi$ which are conditional probabilities associated with $\btheta$.
+For example, consider what we will call $\phi_g^{(m)}$---the fraction of fish, from amongst all those
+which carry a CWT, and are marked, that come from release group $g$.   
+
+
+
+
+\bibliography{../bibstuff/pbtfeas}
+\bibliographystyle{../bibstuff/men}
+ \end{document}
