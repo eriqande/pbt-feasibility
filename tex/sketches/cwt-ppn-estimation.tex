@@ -165,27 +165,35 @@ run it through a metal detector to see if it beeps, here is what we shall keep t
 update/impute as necessary).
 
 \begin{description}
-	\item [How sampled?]  It gets a ``V'' if it was visually sampled or an E if electronic.  There should
+	\item [{\tt detection\_method}]  It gets a ``V'' if it was visually sampled or an ``E'' if electronic.  There should
 	not be any NA's here.
-	\item [Did it beep?] True/False, only relevant if ``How sampled" is E.  This could be NA but it probably
-	shouldn't be.
-	\item [Ad-clipped?]  True/False.  An ad-clip, even in combination with any other marks is still counted
-	as just an ad-clip.  There can be NAs here. Note that an NA means that the fish was either not
+	\item [{\tt beep}] yes/no/irrelevant for whether or not it beeped upon electronic detection. Only relevant if detection\_method is E.  This should be exclusively Yes/No. Must be irrelevant if
+	detection\_method is "V".
+	\item [{\tt ad\_clipped}]  yes/no/unknown.  An ad-clip, even in combination with any other marks is still counted
+	as just an ad-clip.  unknown means that the fish was either not
 	inspected for a mark, or it was and its marks status was ambiguous.
-	\item [CWT status:] This stores the tag\_code of the CWT or other information.  The possibilities are:
+	\item [{\tt cwt\_status}] This stores general information about CWT or other information.  The possibilities are:
 	\begin{enumerate}
-		\item A tag code
-		\item Not present (i.e. not tag found in the fish)
-		\item Tag present but not readable (this will be any category like tag-not readable, or tag
-		recovered and then lost, etc.
+		\item A tag code (CWT)
+		\item Agency-only or blank wire (AWT)
+		\item Tag present but not readable (this will be any category like ``tag not readable'', or ``tag
+		recovered and then lost,'' etc.) (NoRead)
+		\item Not present (i.e. no tag found in the fish)  (NoTag)
 		\item NA --- This signifies that it is unknown if the fish actually had a CWT or not.
 	\end{enumerate}
 
 \end{description}
 
 
+We can compute all the possibilities.
+
+
+
 I think that pretty much does it for the missing data.  Given an estimate of $\btheta$ and the $f$'s and $p$'s we should be able to compute the joint posterior for all of these possibilities, which means
 we can totally sample over them.  Cool!
+
+%% expand.grid(cwt_status = c("CWT", "AWT", "NoRead", "NoTag", NA), ad_clipped = c(TRUE, FALSE, NA), beep = c(TRUE, FALSE), how_sampled = c("V", "E")) %>% rev %>% filter(!(beep == TRUE & how_sampled == "V"))
+
 
 
 

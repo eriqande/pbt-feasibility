@@ -294,4 +294,18 @@ inner_join(num_all_fish_in_agglom, num_fish_from_singly_observed_release_group, 
 So, this might indicate that it is going to be hard to model each area with a Dirichlet
 distribution based on the observed CWTs, because, in fact, it might be that a substantial
 fraction of the of the fish swimming around are ones from a release group that has just not
-been observed.  We could model that, perhaps, with a Dirichlet process.  
+been observed.  We could model that, perhaps, with a Dirichlet process.  Or just
+include all the tag_codes in there with at least some prior weight so that the
+"leftover" weight is what we would get from the Dirichlet process.
+
+## Looking at some of these aggloms
+First thing I want to do is table up the different combinations of observed factors on these fish:
+```{r}
+# here are the area codes of agg-small-1-1
+as11 <- smag$area_code[smag$agglom == "agg-small-1-1"]
+
+# and here are the catch sample IDs associated with that
+csi <- cr2012_with_area_code %>% filter(area_code %in% as11) %>% select(catch_sample_id) %>% distinct() %>% na.omit
+
+
+```

@@ -1,0 +1,207 @@
+---
+title: "Summarize for MCMC"
+author: "Eric C. Anderson"
+date: "Jan 4, 2014"
+output:
+  html_document:
+    fig_width: 10
+    fig_height: 8
+    toc: yes
+---
+
+```{r, echo=FALSE, include=FALSE}
+library(knitr)
+opts_knit$set(root.dir = '..')
+```
+
+```{r, echo=FALSE, include=FALSE}
+# load libraries, etc
+library(ggplot2)
+library(lubridate)
+library(dplyr)
+library(reshape2)
+library(stringr)
+source("R/rmis_cleaning.R")
+```
+
+
+## Objective
+
+The objective here is make a nice summary for each `catch_sample_id` which enumerates the numbers of different categories
+described in `tex/sketches/cwt-ppn-estimation.tex`.
+
+To get that, we are going to need to draw from the recovery data base and also from the catch_sample data base.  
+
+Let's start with getting what we can from the recovery data base.
+
+### Recovery Data Base Operations
+
+First, make some new fields that relate to the variables we want:
+```{r}
+rec <- tbl_df(readRDS("data/chinook_recoveries.rds"))
+rec <- rec %>% filter(run_year == 2012) # filter it down to 2012
+
+# one of the first things we will do here is make a catch_sample_id that should
+# be unique.  The data base is pretty screwed up that way.
+rec <- rec %>% mutate(unique_catch_sample_id = paste(catch_sample_id, reporting_agency, run_year, sep = "--"))
+
+# add leading zeroes onto the mark codes
+rec$recorded_mark <- str_pad(rec$recorded_mark, 4, "left", "0")
+
+# then get ready to switch the marks to our variables
+mycodes <- vector()
+mycodes["9"] <- "unknown"
+mycodes["5"] <- "yes"
+mycodes["0"] <- "no"
+
+# and do it:
+rec <- rec %>% mutate(ad_clipped = mycodes[str_sub(recorded_mark, 1, 1)])
+
+
+# now, assume all electronically detected fish were beep fish (must be the case, I believe)
+rec <- rec %>% mutate(beep = ifelse(detection_method == "E", "yes", "irrelevant"))
+
+# now, get the tag statuses:
+tagstats <- vector()
+tagstats[1] <- "cwt"
+tagstats[2] <- "no_tag"
+tagstats[c(3,4,7)] <- "no_read" 
+tagstats[8] <- "unknown"  # if head is not processed then it gets unknown
+tagstats[9] <- "awt"
+
+# and we make our cwt_status column here
+rec <- rec %>% mutate(cwt_status = tagstats[tag_status])
+```
+
+OK, with that done, we have `detection_method` `beep`, `ad_clipped`, and `cwt_status` as desired.  Let's count up all the
+different levels of those:
+```{r}
+rec %>% group_by(detection_method, beep, ad_clipped, cwt_status) %>% tally()
+```
+
+So, that is a summary of the observed data in the recovery data base for 2012.  Now, we need to figure out how to combine
+the catch_sample data with all of that.  That we do in the next section.
+
+### Adding in the catch-sample data
+
+First thing, we get the catch-sample data and whittle it down to only those samples that led to 2012 recoveries.
+
+```{r}
+cs <- tbl_df(readRDS("data/catch_sample.rds")) %>%
+  mutate(unique_catch_sample_id = paste(catch_sample_id, reporting_agency, catch_year, sep = "--"))
+
+cs <- cs %>% filter(unique_catch_sample_id %in% rec$unique_catch_sample_id)
+```
+
+Later on we will be filtering out to only marine fishery `unique_catch_sample_id`'s which is good to keep in mind.  Since this stuff
+now probably includes a lot of other stuff.  
+
+#### Visually sampled fisheries
+For visually sampled fisheries, I think it will end up being prett easy.  All we need to do is grab the total number of
+non-adclipped fish, and we assign cwt_status of unknown to all of them.  The necessary information is held in the
+`mr_` fields.  
+```{r}
+vsamp <- cs %>% filter(detection_method == "V") %>% 
+  mutate(n = mr_1st_partition_size - mr_1st_sample_obs_adclips,
+         cwt_status = "unknown",
+         ad_clipped = "no",
+         beep = "irrelevant") %>%
+  select(unique_catch_sample_id, adclip_selective_fishery, number_sampled, mr_1st_partition_size, detection_method, beep, ad_clipped, cwt_status, n)
+  
+```
+That is ready to be rbinded right onto the recovery data summaries, except that I included a few extra columns there because
+I was curious about how there were no ad-clipped fish at all.  Perhaps those are freshwater or at-hatchery recoveries that will
+be dropped anyway.
+
+#### Electronically sampled fisheries
+
+These are somewhat more complicated because of the several differing ways that they do mark sampling. The sampling for marks
+is either dependent or independent of the beep-status of the fish.  If sampling is independent, then the `mr2_` fields are
+NAs.  
+
+Let's first deal with the dependent case.  Here are the no-beep fish.
+```{r}
+esamp_dep_no_beep <- cs %>%
+  filter(detection_method == "E", !is.na(mr_2nd_partition_size) & !is.na(mr_2nd_sample_known_ad_status)) %>% # note that testing mr_2nd_sample_known_ad_status here is necessary because ODFW screwed up and put zeroes in instead of leaving  mr_2nd_partition_size absent, and the maintainers of the data base didn't catch it.  So lame, and such a waste of my time trying to figure out what is going on...GRRRRR...
+  mutate(yes = mr_2nd_sample_obs_adclips, 
+         no = mr_2nd_sample_known_ad_status - mr_2nd_sample_obs_adclips,
+         unknown = mr_2nd_partition_size - mr_2nd_sample_known_ad_status,
+         beep = "no", 
+         cwt_status = "unknown") %>%
+  select(unique_catch_sample_id, detection_method, beep, cwt_status, yes, no, unknown) %>%
+  melt(measure.vars = c("yes", "no", "unknown"), variable.name = "ad_clipped", value.name = "n") %>%
+  tbl_df %>%
+  arrange(unique_catch_sample_id, ad_clipped) %>%
+  select(unique_catch_sample_id:beep, ad_clipped, cwt_status, n)
+
+esamp_dep_no_beep
+```
+and here are the beep-fish:
+```{r}
+esamp_dep_beep <- cs %>%
+  filter(detection_method == "E", !is.na(mr_2nd_partition_size) & !is.na(mr_2nd_sample_known_ad_status)) %>%
+  mutate(yes = mr_1st_sample_obs_adclips, 
+         no = mr_1st_sample_known_ad_status - mr_1st_sample_obs_adclips,
+         unknown = mr_1st_partition_size - mr_1st_sample_known_ad_status,
+         beep = "yes", 
+         cwt_status = "unknown") %>%
+  select(unique_catch_sample_id, detection_method, beep, cwt_status, yes, no, unknown) %>%
+  melt(measure.vars = c("yes", "no", "unknown"), variable.name = "ad_clipped", value.name = "n") %>%
+  tbl_df %>%
+  arrange(unique_catch_sample_id, ad_clipped) %>%
+  select(unique_catch_sample_id:beep, ad_clipped, cwt_status, n)
+
+esamp_dep_beep
+```
+These latter ones are a little awkward because I suspect many of these are aleady going to be reported in the recovery file. I still need to figure out what to do about that.  
+
+Finally, we have the (few) situations where sampling for marks occurs independently of the electronic sampling.  It is not clear
+whether some of the fish sampled might be the same as the ones that had CWTs recovered from or not.  It's unclear the way
+they have set it up.  But, I am just going to go ahead and assume that the fish investigated for ad-clips here are
+entirely distinct from those that were electronically sampled.  This might not be correct, but there is no other way to
+deal with it.
+
+Let's pick them out:
+```{r}
+esamp_indep <- cs %>%
+  filter(detection_method == "E", is.na(mr_2nd_partition_size) | is.na(mr_2nd_sample_known_ad_status)) %>%
+  mutate(yes = mr_1st_sample_obs_adclips, 
+         no = mr_1st_sample_known_ad_status - mr_1st_sample_obs_adclips,
+         unknown = mr_1st_partition_size - mr_1st_sample_known_ad_status,
+         beep = "irrelevant", 
+         cwt_status = "unknown") %>%
+  select(unique_catch_sample_id, detection_method, beep, cwt_status, yes, no, unknown) %>%
+  melt(measure.vars = c("yes", "no", "unknown"), variable.name = "ad_clipped", value.name = "n") %>%
+  tbl_df %>%
+  arrange(unique_catch_sample_id, ad_clipped) %>%
+  select(unique_catch_sample_id:beep, ad_clipped, cwt_status, n)
+
+esamp_indep
+```
+
+
+### catch-samp vs recovery for the electronically sampled beep fish
+
+Here I take a quick look at the correspondence (if any) between `esamp_dep_beep` and what
+we find in the recovery sample.
+```{r}
+# first, add up all the ad-clipped or not fish from the beep samples in the recovery file
+tmp <- rec %>% 
+  filter(detection_method == "E") %>%
+  group_by(unique_catch_sample_id, detection_method, beep, ad_clipped) %>%
+  tally() %>%
+  filter(beep == "yes") %>%
+  rename(nrec = n)
+
+# then inner join that to the esamp_dep_beeps:
+joined <- inner_join(esamp_dep_beep %>% select(-cwt_status), tmp) %>% 
+  arrange(unique_catch_sample_id, detection_method, beep, ad_clipped)
+
+dim(joined)
+
+# now, see which ones don't match up
+mism <- joined %>%
+  filter(n != nrec)
+```
+
+Here is interesting thing to notice.  When it comes to ad-clipped fish 
