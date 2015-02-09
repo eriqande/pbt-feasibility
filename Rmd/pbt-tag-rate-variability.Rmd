@@ -1,0 +1,199 @@
+---
+title: "Variability in PBT tag rates"
+author: "Eric C. Anderson"
+date: "Feb 6, 2015"
+output:
+  html_document:
+    fig_width: 10
+    fig_height: 8
+    toc: yes
+---
+
+```{r, echo=FALSE, include=FALSE}
+library(knitr)
+opts_knit$set(root.dir = '..')
+```
+
+```{r, echo=FALSE, include=FALSE}
+# load libraries, etc
+library(ggplot2)
+library(lubridate)
+library(dplyr)
+library(reshape2)
+library(stringr)
+
+```
+
+
+## Introduction
+
+For PBT to function in the way that the CWT system
+does requires that the PBT tagging rate
+be known (or at least estimated).  One issue that arises in this context is 
+the extra variability in tagging rate that might result from differential
+survival of different families in the hatchery.  The variance in the PBT
+tagging rate depends on the variance in family size in the hathery, as well
+as on the pattern of mating adopted by the hatchery, and the fraction of parents
+that were successfully genotyped. 
+
+In order to predict the variance in
+PBT tagging rate that might be encountered, this document presents the 
+rationale and code behind a system of simulations that are paramterized
+using the data that we currently have available at different hatcheries.
+The inputs to this procedure are:
+
+1. A data frame holding the recovered parentage assignments at the hatchery
+over the course of PBT operations at it.
+2. A vector of successful genotyping rates.
+
+From these inputs, the method estimates the parameter of a Compound Dirichlet
+Multinomial Distribution that best fits the pedigree data, and then it uses
+these parameters to simulate fractions of offspring in a very large pool
+of offspring (equivalent to a release group) and then, after assigning
+the parents of these offspring to tagged or untagged groups, measures the 
+tagging rate.  It does this repeatedly to assess the variance in tagging 
+rate.
+
+
+## Pedigree data
+
+An example of the pedigree data appears below.
+```{r read-data}
+x <- tbl_df(read.table("data/FRH_trios.txt")) %>%
+  mutate(brood_year = str_match(pa, "_(2[0-9]{3})$")[,2])
+
+x
+```
+
+Now, for the purposes of estimating the parameters of the CDM distribution, we can condense this
+down to the counts of full-sib families of different sizes (Note, we assume that we can capture
+most of what we need to without a model that posits individual parent contributions to fitness
+in half-sib families...)
+
+```{r condense}
+num_offs <- x %>% 
+  group_by(brood_year, pa, ma) %>%
+  tally() %>% rename(num_offspring = n) %>%
+  ungroup
+
+fam_sizes <- num_offs %>%
+  group_by(brood_year, num_offspring) %>%
+  tally()
+
+head(fam_sizes, n = 15)
+  
+```
+
+The first thing we see from this is that we have 0-censored data---because we don't have individual
+mating records in this hatchery, we don't know which individuals were mated together, so we don't have
+an exact count of how many parent pairs there were that didn't produce any offspring. However, knowing the
+fraction of sampled parent pairs, we can at least come up with an estimate of how many matings there
+may have been that we wouldn't be able to recover through parentage, anyway. 
+
+
+
+## Estimation of alpha and K
+
+Since we are interested in the variance in family size, we will use that as a criterion for fitting
+the model. We will also fit the number parent pairs with at least one offspring.  We will do this
+by simulation.  First we need something that simulates the CDM and computes the variance of the 
+non-zero family sizes from it.  
+
+First let us see what the mean number and sd of (non_zero) family size is each year
+and also the number of families with at least one offspring detected.
+
+```{r}
+means_etc <- num_offs %>% 
+  group_by(brood_year) %>%
+  summarise(mean = mean(num_offspring), sd = sd(num_offspring), size = sum(num_offspring), non_zero = n())
+
+means_etc
+```
+
+We can think of those values as living in the cartesian plane:
+```{r}
+ggplot(means_etc, aes(x = sd, y = non_zero, colour = brood_year)) + geom_point(size = 5)
+```
+
+And, for each of them, we can simulate a CDM with n equal to non-zero, and trying
+different values of a and K till we get something that works pretty well.  
+```{r}
+source("R/pbt-tagging-fract-funcs.R")
+
+# then fiddle around with some things like this:
+cdm_stats(simCDM(1000, size = 1024, a = 1.0, K = 600))
+
+```
+And what we find is that it is very hard to get the sorts of numbers that we see in the
+observed data without cranking the number of parent pairs with no offspring up
+higher than is reasonable.
+
+It might be better to do more generic simulations just assuming the CDM and some
+simple idea like Ne/N ratio.  
+
+
+## Doing it via a gamma and urn model
+
+If we are interested in the Ne/N ration and call that L.  Then, in a constant sized
+population we can get that L by choosing the scale of a gamma shape parameter
+to be $(L-1/N)/(1-L)$.
+
+So, if we are talking about 50 families, and we want to think about them creating
+a random number of offspring each with an average of 2, as if they were a perfect Poisson, then we would do:
+
+```{r}
+fsizes <- rpois(50, 2)
+```
+
+We could envisage that as a two-stage sampling process where we first simulate a
+bunch of juveniles, and then randomly sample from them.  
+
+The poisson variance in family size would be like everyone making an equal and very
+number of juveniles and then randomly sampling from them.  But we could lump that extra
+variance needed to reduced the effective size into a negative binomial distribution on junveniles.
+
+That sort of hierarchy would look like this
+```{r}
+K <- 250 # number of mated pairs
+f <- 4000 # average fecundity of  female chinoook
+L <- .3 # ratio of Ne to N
+shape = (L - 1 / K) / (1 - L)
+scale = f / shape
+
+g <- rgamma(K, shape = shape, scale = scale)
+poi <- rpois(length(g), g) # neg bin distributed juveniles
+adu <- rmultinom(1, size = K, prob = poi/sum(poi))
+wf <- rmultinom(1, size = K, prob = rep(1/K, K))
+```
+
+But I think that is totally crackpot.  It will probably be easier and better to
+think of the parent generation of size K giving rise to a juvenile offspring 
+population of size K*f, and then twiddle the $\lambda = N_e/N$ knob between
+different reasonable values.  In that case,  let's make a function:
+```{r}
+hsim <- function(K, f, L) {
+  s = (K * (1 - L)) / (L * K * f - 1) # stochastic replacement
+  shape = 1 / s
+  scale = f / shape
+  
+  g <- rgamma(K, shape = shape, scale = scale)
+  poi <- rpois(length(g), g) # neg bin distributed juveniles
+  poi
+  
+}
+
+hsim(25, 4000, .9)
+hsim(25, 4000, .01)
+```
+
+That does not look right to me either.  That is far too little variation.  It 
+might be better to just parameterize it in terms of the variance or even just
+show a histogram for the distribution of juvenile offspring number.
+
+
+So let us do that:
+```{r}
+K <- 25
+
+b <- rnbinom(n = K, mu = 4000, size = 10)
+```

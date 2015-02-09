@@ -2,3 +2,6 @@
 .Rhistory
 .RData
 tmp_*
+group_planning_etc
+marktypes.csv
+/tag_fracts_*.pdf

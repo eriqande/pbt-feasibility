@@ -34,6 +34,30 @@ dim(releases)
 releases$species <- int_to_factor(releases$species, species_levels())
 ```
 
+### Sizes of tag-associated release groups
+
+Let's quickly compile some information on how many fish likely
+produced each of these release groups.
+```{r}
+relcnts <-releases %>% filter(record_code == "T", brood_year > 2000) %>% select(reporting_agency, ends_with("count"), brood_year, tag_code_or_release_id)
+
+# change NAs in the counts to 0
+relcnts[, 2:5][is.na(relcnts[,2:5])] <- 0
+
+femcnts <- relcnts %>% 
+  mutate(tots = cwt_1st_mark_count + cwt_2nd_mark_count + non_cwt_1st_mark_count + non_cwt_2nd_mark_count) %>%
+  select(tag_code_or_release_id, reporting_agency, brood_year, tots) %>%
+  mutate(tot_fem = tots / 4000) %>%
+  mutate(fem_cats = cut(tot_fem, breaks = c(0, 10, 25, 50, 100, 250, 500, 1000, 10^4)))
+
+# how many total fish released from each "number of females category"
+femcnts %>%
+  group_by(fem_cats) %>%
+  summarise(tot_rel = sum(tots)) %>%
+  mutate(fract = tot_rel / sum(tot_rel))
+  
+```
+
 
 ### Numbers of tagged vs untagged fish etc.
 We will start off with some simple investigations of the number of fish 
