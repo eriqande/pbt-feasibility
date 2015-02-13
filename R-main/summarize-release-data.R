@@ -44,7 +44,7 @@ releases$release_location_rmis_basin[releases$release_location_rmis_basin == ""]
 
 
 # this operation does a few things
-# 1. make a column "tag" that says whether the record is for a release with cwts, pseudo tags, or neither cwt or pseudo tags
+# 1. make a column "tag_variety" that says whether the record is for a release with cwts, pseudo tags, or neither cwt or pseudo tags
 # 2. create the columns:
 #     n_tag_ad   number tagged and adclipped
 #     n_tag_noad     number tagged but not adclipped, 
@@ -52,7 +52,7 @@ releases$release_location_rmis_basin[releases$release_location_rmis_basin == ""]
 #     n_notag_noad
 # NOTE: The pseudo-tagged and AWT fish end up in the notag columns
 releases <- releases %>%
-  mutate(tag = ifelse(is.na(tag_type), "none", ifelse(tag_type==16, "pseudo", "cwt"))) %>%
+  mutate(tag_variety = ifelse(is.na(tag_type), "none", ifelse(tag_type==16, "pseudo", "cwt"))) %>%
   mutate(n_tag_ad = has_adclip(cwt_1st_mark) * cwt_1st_mark_count + has_adclip(cwt_2nd_mark) * cwt_2nd_mark_count,
          n_tag_noad = (1 - has_adclip(cwt_1st_mark)) * cwt_1st_mark_count + (1 - has_adclip(cwt_2nd_mark)) * cwt_2nd_mark_count,
          n_notag_ad = has_adclip(non_cwt_1st_mark) * non_cwt_1st_mark_count + has_adclip(non_cwt_2nd_mark) * non_cwt_2nd_mark_count,
@@ -61,23 +61,51 @@ releases <- releases %>%
 
 
 
-# here is a quick sanity check:
-rel_grouped <- releases %>%
-  filter(species == 1, brood_year == 2000) %>% 
-  group_by(release_location_state, release_location_rmis_region, release_location_rmis_basin, run, tag)
 
-left_join(
-  rel_grouped %>%
-    select(starts_with("n_")) %>% 
-    summarise_each(funs(sum)),
+#### a function to compute and store summaries for different levels of aggregation ####
+
+# We want list of data frames, each one grouped by different (hierarchical) variables.
+# We disregard "run" because there is a lot of missing data in it.
+# Two variables that we want to include at every level of the hierarchy are: brood_year and tag_variety
+# the others nest naturally as state -> region -> basin -> release_id
+
+# So, we do this as a function which takes species and years as arguments to filter stuff 
+# out first, then returns a list of all the differently grouped and summarised data.
+# Note that we toss out release codes that have NA for state. (there are 29 of those across all years...)
+group_releases_hierarchically <- function(Species = 1, BroodYears = 2000:2004) {
   
-  rel_grouped %>%
-    summarise(num_tag_codes = n_distinct(tag_code_or_release_id))
-) %>% View
+  # here are the different hierarchical levels at which we will aggregate;
+  aggs <- list(State = list(~ release_location_state, ~ brood_year, ~ tag_variety),
+               Region = list(~ release_location_state, ~ release_location_rmis_region, ~ brood_year,  ~ tag_variety),
+               Basin = list(~ release_location_state, ~ release_location_rmis_region, ~ release_location_rmis_basin, ~ brood_year,  ~ tag_variety),
+               Release_ID = list(~ release_location_state, ~ release_location_rmis_region, ~ release_location_rmis_basin,  ~ brood_year, ~ tag_variety, ~ tag_code_or_release_id)
+  )
+  
+  # now, summarize at those different aggregations:
+  
+  grouped_list <- lapply(aggs, function(agg) {
+    # make a grouped tbl_df
+    rel_grouped <- releases %>% 
+      filter(species == Species, brood_year %in% BroodYears, !is.na(release_location_state)) %>%   
+      group_by_(.dots = agg)
+    
+    # then summarise it.  I didn't know how to sum each column and put n_distinct on there too, so I throw in the left join
+    left_join(
+      rel_grouped %>%
+        select(starts_with("n_")) %>% 
+        summarise_each(funs(sum)),
+      
+      rel_grouped %>%
+        summarise(num_tag_codes = n_distinct(tag_code_or_release_id))
+    )
+  })
+}
 
 
-# Looks to me like I will just want to disregard "run" because there is a lot of missing data in it.
-# I also should take the basins that are missing and just lump them together within region as "missing"
-# and same for missing regions.  I could try to model different years and things, but since i am mostly
-# aggregating like this to get a hierarchical prior, I think it will be best to just average over all
-# possible years that could be contributing.
+
+#### Then, for any particular species and years we can do this:
+
+  
+try_it <- group_releases_hierarchically()
+
+
