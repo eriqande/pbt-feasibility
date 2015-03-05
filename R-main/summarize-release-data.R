@@ -166,11 +166,34 @@ group_releases_hierarchically <- function(Species = 1, BroodYears = 2000:2004) {
 
 #### Then, for any particular species and years we can do this: ####
 
-  
-try_it <- group_releases_hierarchically()
+
+# grab all these and then we will filter down later only to the ones that we've
+# seen recovered in 2012
+releases2004_2012 <- group_releases_hierarchically(BroodYears = 2004:2012)
 
 
-############### GETTING AND SUMMARIZING RECOVERY DATA
+# While we are at it, we want to make a data frame we can use to order things
+# in some appropriate manner.  I could be more refined about ordering the regions
+# within state, but i will worry about that if I have more time later
+tmp <- releases2004_2012$Release_ID %>%  # make a frame of all the regions
+  group_by(release_location_state, release_location_rmis_region) %>% 
+  tally()
+
+
+tmp$release_location_state <- factor(tmp$release_location_state, 
+                                     levels = c("AK", "BC", "WA", "ID", "OR", "CA"))
+
+release_order_info <- tmp %>%
+  arrange(release_location_state) %>%
+  ungroup %>%
+  mutate(order_em = 1:nrow(tmp)) %>%
+  inner_join(releases2004_2012$Release_ID, .)
+
+
+
+
+
+############### GETTING AND SUMMARIZING RECOVERY DATA  ####
 
 # The general flow for this is as follows:
 # 1. get the recovery data and condense it down to the tag_status and mark/beep status of each fish
@@ -218,9 +241,190 @@ our_locs <- tbl_df(cbind(locs, parse_location_codes(locs$location_code))) %>%
 # and then join those to rec
 rec_with_locs <- left_join(rec, our_locs, by = c("recovery_location_code" = "location_code"))
 
+# NOTE: rmis_basin in the recoveries doesn't seem to be the basins --- more like a sub-region
+# Though for freshwater recovery it probably means more.  Probably it is going to be best for us to
+# use state_or_province, sector, region, area, location for agglomerating these.
+
 # now, just for fun and looking around, let's count these by different groupings:
 rec_with_locs %>%
   group_by(state_or_province, sector, region, cwt_status, ad_clipped, beep) %>%
   tally() %>% View
 
 
+#### This is just trying to make some crazy plot that will guide us in aggregating recoveries ####
+justcwts <- rec_with_locs %>%
+  filter(cwt_status == "cwt")
+
+rec2 <- justcwts %>%
+  group_by(state_or_province) %>%
+  summarise(state_n = n()) %>% 
+  inner_join(justcwts)
+
+rec3 <- rec2 %>%
+  group_by(state_or_province, sector) %>%
+  summarise(sector_n = n()) %>%
+  inner_join(rec2)
+
+rec4 <- rec3 %>%
+  group_by(state_or_province, sector, region) %>%
+  summarise(region_n = n()) %>%
+  inner_join(rec3)
+
+rec5 <- rec4 %>%
+  group_by(state_or_province, sector, region, area) %>%
+  summarise(area_n = n()) %>%
+  inner_join(rec4)
+
+rec6 <- rec5 %>%
+  group_by(state_or_province, sector, region, area, location) %>%
+  summarise(location_n = n()) %>%
+  inner_join(rec5)
+
+
+rec7 <- rec6 %>%
+  select(state_or_province, state_n, sector, sector_n, region, region_n, area, area_n, location, location_n) %>%
+  unique %>%
+  ungroup %>%
+  arrange(state_or_province, desc(sector_n), sector, 
+          desc(region_n), region, desc(area_n), area, desc(location_n), location)
+
+rec7$location_x <- 1:nrow(rec7)
+
+rec8 <- rec7 %>%
+  group_by(state_or_province, sector, region, area) %>%
+  summarise(area_x = mean(location_x)) %>%
+  left_join(rec7)
+
+rec9 <- rec8 %>%
+  group_by(state_or_province, sector, region) %>%
+  summarise(region_x = mean(area_x)) %>%
+  left_join(rec8)
+
+rec10 <- rec9 %>%
+  group_by(state_or_province, sector) %>%
+  summarise(sector_x = mean(region_x)) %>%
+  left_join(rec9)
+
+rec11 <- rec10 %>%
+  group_by(state_or_province) %>%
+  summarise(state_x = mean(sector_x)) %>%
+  left_join(rec10)
+
+rec12 <- rec11 %>% 
+  arrange(state_or_province, desc(sector_n), sector, 
+          desc(region_n), region, desc(area_n), area, desc(location_n), location)
+
+# and now we can ggplot that
+number_ticks <- function(n) {function(limits) pretty(limits, n)}
+ 
+ggplot(data = rec12) +
+  geom_point(aes(x = state_x, y = state_n), color = "red", size = 0.2) + 
+  geom_segment(aes(x = state_x, xend = sector_x, y = state_n, yend = sector_n), color = "red", size = 0.2) +
+  geom_point(aes(x = sector_x, y = sector_n), color = "orange", size = 0.2) + 
+  geom_segment(aes(x = sector_x, xend = region_x, y = sector_n, yend = region_n), color = "orange", size = 0.2) +
+  geom_point(aes(x = region_x, y = region_n), color = "blue", size = 0.2) + 
+  geom_segment(aes(x = region_x, xend = area_x, y = region_n, yend = area_n), color = "blue", size = 0.2) +
+  geom_point(aes(x = area_x, y = area_n), color = "violet", size = 0.2) + 
+  geom_segment(aes(x = area_x, xend = location_x, y = area_n, yend = location_n), color = "violet", size = 0.2) +
+  scale_x_continuous(breaks=number_ticks(50)) +
+  facet_wrap(~state_or_province, ncol = 1, scales = "free")
+  
+  
+  
+ggsave(file = "recovery_trees.pdf", width = 18.5, height = 20)
+
+
+#### Now, based on the recovery_trees.pdf plot here we will aggregate them ####
+# This isn't super reproducible, but I am just going to focus on run_year = 2012 here
+# and do it by hand...
+rec13 <- rec12 %>%
+  mutate(recovery_group = as.integer(cut(rec12$location_x, breaks = c(0, 22.1, 35.1, 78.1, 116.1, 235.1,  # 5 groups in alaska
+                                      500.1, 604.1, # 2 in BC
+                                      606.1, 610.1, 612.1, 745.1, 756.1, # 4 in WA, plus one small one
+                                      774.1, # one in oregon.
+                                      775.1, 776.1, 777.1, 778.1, 791.1))) # 5 in CA
+  ) %>%
+  filter(!is.na(recovery_group))   # this tosses the high-seas recoveries
+ 
+# let's count these up
+rec13 %>%
+  group_by(recovery_group)  %>%
+  summarise(num_cwts = sum(location_n))
+
+# now, let's also summarise to see what these fisheries are:
+rec13 %>%
+  group_by(state_or_province, region, recovery_group) %>%
+  tally() %>%
+  ungroup %>%
+  arrange(recovery_group)
+
+# and from that we see that we could name our recovery groups like this:
+recov_group_names <- c("01-AK-NW", "02-AK-NW", "03-AK-SE", "04-AK-NE", "05-AK-Various",
+  "06-BC", "07-BC",
+  "08-WA", "09-WA", "10-WA", "11-WA", "12-WA",
+  "13-OR",
+  "14-CA", "15-CA", "16-CA", "17-CA", "18-CA")
+
+rec13$recovery_group <- recov_group_names[rec13$recovery_group]
+
+# now, just get the values columns we want
+rec14 <- rec13 %>%
+  select(state_or_province, sector, region, area, location, recovery_group)
+
+
+# and finally, join this to rec_with_locs so that we have the recovery group for all the recoveries
+rec2012_heavy <- inner_join(rec_with_locs, rec14)
+
+
+# and here we just pick out the columns we are going to want to keep
+rec2012 <- rec2012_heavy %>%
+  select(tag_code:beep, recovery_group)
+
+
+
+# Now, filter it to just cwt recoveries, and store just the distinct codes,
+# and on each of those reattach the order_me and the state, and basin, info,
+# and give each a unique number that counts as their x-position
+distinct_codes <- rec2012 %>% 
+  filter(cwt_status == "cwt") %>%
+  select(tag_code) %>%
+  distinct %>%
+  inner_join(release_order_info,  by = c("tag_code" = "tag_code_or_release_id")) %>%
+  arrange(order_em, release_location_rmis_basin, brood_year) %>%
+  mutate(tag_code_x_value = 1:nrow(.))
+
+
+ 
+
+
+# then count up how many recoveries of each tag code in each recovery group
+# and join the info in distinct codes to that
+rec2012a <- rec2012 %>%
+  group_by(recovery_group, tag_code) %>%
+  summarise(num_tag_recovs_in_group = n()) %>%
+  inner_join(distinct_codes)
+
+
+# to make a rug we will want to have the x-values where state release groups start
+state_starts <- distinct_codes %>% group_by(release_location_state) %>% summarise(xval = min(tag_code_x_value))
+# and the same for where regions start too:
+region_starts <- distinct_codes %>% group_by(release_location_state, release_location_rmis_region) %>% summarise(xval = min(tag_code_x_value))
+
+
+g <- ggplot(data = rec2012a) +
+  geom_rug(data = region_starts, aes(x = xval), size = 0.2, colour = "grey50") +
+  geom_vline(xintercept = state_starts$xval, size = 0.04, colour = "black") +
+  facet_wrap(~ recovery_group, ncol = 1, scales = "free_y") + 
+  theme_bw() + theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())
+
+g + geom_segment(aes(x = tag_code_x_value, xend = tag_code_x_value, y = 0, yend = num_tag_recovs_in_group, colour = release_location_state),
+                 size = 0.1)
+
+ggsave(file = "recovery_histo_panels.pdf", width = 8.5, height = 18)
+
+# now, overwrite the colors with brood year
+g + geom_segment(aes(x = tag_code_x_value, xend = tag_code_x_value, y = 0, yend = num_tag_recovs_in_group, 
+                     colour = factor(brood_year)),
+                 size = 0.1)
+
+ggsave(file = "recovery_histo_panels_brood_year.pdf", width = 8.5, height = 18)
