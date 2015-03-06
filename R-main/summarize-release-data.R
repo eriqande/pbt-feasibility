@@ -248,7 +248,7 @@ rec_with_locs <- left_join(rec, our_locs, by = c("recovery_location_code" = "loc
 # now, just for fun and looking around, let's count these by different groupings:
 rec_with_locs %>%
   group_by(state_or_province, sector, region, cwt_status, ad_clipped, beep) %>%
-  tally() %>% View
+  tally()
 
 
 #### This is just trying to make some crazy plot that will guide us in aggregating recoveries ####
@@ -316,8 +316,12 @@ rec12 <- rec11 %>%
 
 # and now we can ggplot that
 number_ticks <- function(n) {function(limits) pretty(limits, n)}
- 
-ggplot(data = rec12) +
+
+rec12_4_plot <- rec12  # just make a copy cause i am going to tweak it
+states_tmp <- c("AK", "BC/Yukon", "WA", "ID", "OR", "CA", "High Seas")
+rec12_4_plot$state_or_province <- factor(states_tmp[as.numeric(rec12_4_plot$state_or_province)], levels = states_tmp)
+rec12_4_plot
+g <- ggplot(data = rec12_4_plot) +
   geom_point(aes(x = state_x, y = state_n), color = "red", size = 0.2) + 
   geom_segment(aes(x = state_x, xend = sector_x, y = state_n, yend = sector_n), color = "red", size = 0.2) +
   geom_point(aes(x = sector_x, y = sector_n), color = "orange", size = 0.2) + 
@@ -326,7 +330,7 @@ ggplot(data = rec12) +
   geom_segment(aes(x = region_x, xend = area_x, y = region_n, yend = area_n), color = "blue", size = 0.2) +
   geom_point(aes(x = area_x, y = area_n), color = "violet", size = 0.2) + 
   geom_segment(aes(x = area_x, xend = location_x, y = area_n, yend = location_n), color = "violet", size = 0.2) +
-  scale_x_continuous(breaks=number_ticks(50)) +
+  scale_x_continuous(breaks=number_ticks(20)) +
   facet_wrap(~state_or_province, ncol = 1, scales = "free")
   
   
@@ -334,22 +338,24 @@ ggplot(data = rec12) +
 ggsave(file = "recovery_trees.pdf", width = 18.5, height = 20)
 
 
-#### Now, based on the recovery_trees.pdf plot here we will aggregate them ####
+#### Now, based on the recovery_trees.pdf  here we will aggregate them ####
 # This isn't super reproducible, but I am just going to focus on run_year = 2012 here
 # and do it by hand...
+fishery_breaks <- c(0, 22.1, 35.1, 78.1, 116.1, 235.1,  # 5 groups in alaska
+                    500.1, 604.1, # 2 in BC
+                    606.1, 610.1, 612.1, 745.1, 756.1, # 4 in WA, plus one small one
+                    774.1, # one in oregon.
+                    775.1, 776.1, 777.1, 778.1, 791.1)
 rec13 <- rec12 %>%
-  mutate(recovery_group = as.integer(cut(rec12$location_x, breaks = c(0, 22.1, 35.1, 78.1, 116.1, 235.1,  # 5 groups in alaska
-                                      500.1, 604.1, # 2 in BC
-                                      606.1, 610.1, 612.1, 745.1, 756.1, # 4 in WA, plus one small one
-                                      774.1, # one in oregon.
-                                      775.1, 776.1, 777.1, 778.1, 791.1))) # 5 in CA
-  ) %>%
+  mutate(recovery_group = as.integer(cut(rec12$location_x, breaks = fishery_breaks))) %>%
   filter(!is.na(recovery_group))   # this tosses the high-seas recoveries
- 
-# let's count these up
-rec13 %>%
-  group_by(recovery_group)  %>%
-  summarise(num_cwts = sum(location_n))
+
+# now plot it with separators for the different recovery groups
+frame_for_vline <- data.frame(state_or_province = rep(states_tmp[-c(4,7)], times = c(6, 2, 5, 1, 5)), fishery_breaks)
+g + geom_vline(data = frame_for_vline[-1, ], mapping = aes(xintercept = fishery_breaks + 0.5))
+ggsave(file = "recovery_trees_divided.pdf", width = 17, height = 22)
+
+
 
 # now, let's also summarise to see what these fisheries are:
 rec13 %>%
@@ -366,6 +372,18 @@ recov_group_names <- c("01-AK-NW", "02-AK-NW", "03-AK-SE", "04-AK-NE", "05-AK-Va
   "14-CA", "15-CA", "16-CA", "17-CA", "18-CA")
 
 rec13$recovery_group <- recov_group_names[rec13$recovery_group]
+
+# let's count these up
+tmp <- rec13 %>%
+  group_by(recovery_group)  %>%
+  summarise(num_cwts = sum(location_n)) %>%
+  as.data.frame
+
+# in fact, we could add these to the names of the recovery groups
+new_names <- setNames(paste(tmp[,1], "  (", tmp[,2], ")", sep = ""), tmp[,1])
+
+rec13$recovery_group <- new_names[rec13$recovery_group]
+
 
 # now, just get the values columns we want
 rec14 <- rec13 %>%
@@ -395,7 +413,7 @@ distinct_codes <- rec2012 %>%
 
 
  
-
+#### Make some useful plots of the recoveries by tag group  ####
 
 # then count up how many recoveries of each tag code in each recovery group
 # and join the info in distinct codes to that
@@ -410,21 +428,47 @@ state_starts <- distinct_codes %>% group_by(release_location_state) %>% summaris
 # and the same for where regions start too:
 region_starts <- distinct_codes %>% group_by(release_location_state, release_location_rmis_region) %>% summarise(xval = min(tag_code_x_value))
 
+# make a function to ggplot things:
+recovery_histo_plot <- function(df, colorby =  "release_location_state") {
+  ggplot(data = df) +
+    geom_rug(data = region_starts, aes_string(x = "xval"), size = 0.2, colour = "grey50") +
+    geom_vline(xintercept = state_starts$xval, size = 0.04, colour = "black") +
+    facet_wrap(as.formula( "~ recovery_group"), ncol = 1, scales = "free_y") + 
+    theme_bw() + theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank()) +
+    geom_segment(aes_string(x = "tag_code_x_value", xend = "tag_code_x_value", y = 0, yend = "num_tag_recovs_in_group", colour = colorby),
+                 size = 0.1) +
+    scale_colour_discrete(drop = FALSE)
+}  
 
-g <- ggplot(data = rec2012a) +
-  geom_rug(data = region_starts, aes(x = xval), size = 0.2, colour = "grey50") +
-  geom_vline(xintercept = state_starts$xval, size = 0.04, colour = "black") +
-  facet_wrap(~ recovery_group, ncol = 1, scales = "free_y") + 
-  theme_bw() + theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())
-
-g + geom_segment(aes(x = tag_code_x_value, xend = tag_code_x_value, y = 0, yend = num_tag_recovs_in_group, colour = release_location_state),
-                 size = 0.1)
+# then make the plot
+recovery_histo_plot(rec2012a)
 
 ggsave(file = "recovery_histo_panels.pdf", width = 8.5, height = 18)
 
-# now, overwrite the colors with brood year
-g + geom_segment(aes(x = tag_code_x_value, xend = tag_code_x_value, y = 0, yend = num_tag_recovs_in_group, 
-                     colour = factor(brood_year)),
-                 size = 0.1)
+
+# then make it and color it by factor(brood_year)
+tmp <- rec2012a
+tmp$brood_year <- factor(tmp$brood_year)
+recovery_histo_plot(tmp, "brood_year")
 
 ggsave(file = "recovery_histo_panels_brood_year.pdf", width = 8.5, height = 18)
+
+
+# finally, break it down into two plots and get the states ordered correctly
+rectmp <- rec2012a
+rectmp$release_location_state <- factor(rectmp$release_location_state, levels = c("AK", "BC", "WA", "ID", "OR", "CA"))
+tmp <- rectmp %>% filter(recovery_group < "10")
+recovery_histo_plot(tmp)
+ggsave(file = "recovery_histo_panel_1.pdf", width = 8.5, height = 11)
+
+tmp <- rectmp %>% filter(recovery_group >= "10")
+recovery_histo_plot(tmp)
+ggsave(file = "recovery_histo_panel_2.pdf", width = 8.5, height = 11)
+
+
+
+#### And now, finally, we are in a position to continue with the analysis  #####
+
+# we will want what is in rec2012 and distinct codes.  With that I think we can
+# move forward.
+
