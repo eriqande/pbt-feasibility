@@ -239,7 +239,7 @@ from information stored in the RMIS release data base.
 
 It is important to understand that I will be agglomerating different fishery strata in order to obtain
 relatively large samples of CWTs with which to estimate $\btheta$.  In such cases I will assume that
-$\btheta$ is identical across all agglomerated strata.  This is obviously a simplification, but itdoes not make 
+$\btheta$ is identical across all agglomerated strata.  This is obviously a simplification, but it does not make 
 sense to estimate a separate $\btheta$ for every stratum, some of which have only a few CWT recoveries.
 The other consequence
 of this policy is that I will likely end up using both visually and electronically detected samples, together, to 
@@ -295,9 +295,11 @@ the indicator variables and their values that will be used in the upcoming mathe
 	\item [{\tt cwt\_status}:] ~~~$\delta_i^{(\mathrm{cs})}$~~~Does the individual carry a CWT or not, and what category of wire is
 	it? (this is {\em not} the same as the tag code of the fish).
 	\begin{description}
-		\item [{\tt cwt}:] ~~~$\delta_i^{(\mathrm{cs})} = 1$~~~The fish is known to carry a coded wire tag. This corresponds to all fish that
-		are observed to have a non-agency-only CWT, regardless of whether or not it is readable.  This 
-		includes the categories ``Tag read OK,'' ``Tag lost before read,'' ``Tag not readable,'' 
+		\item [{\tt cwt}:] ~~~$\delta_i^{(\mathrm{cs})} = 1$~~~The fish is known to carry a coded wire tag, and it
+		was read appropriately.
+		\item [{\tt no\_read}] ~~~$\delta_i^{(\mathrm{cs})} = n$~~~This corresponds to all fish that
+		are observed to have a non-agency-only CWT but which is not readable, or was apparently read incorrectly.  This 
+		includes the categories ``Tag lost before read,'' ``Tag not readable,'' 
 		and ``Unresolved discrepancy.''
 		\item [{\tt awt}:] ~~~$\delta_i^{(\mathrm{cs})} = a$~~~Agency-only or blank wire.
 		\item [{\tt no\_tag}:] ~~~$\delta_i^{(\mathrm{cs})} = 0$~~~The fish is observed to {\em not} carry a CWT
@@ -310,15 +312,17 @@ the indicator variables and their values that will be used in the upcoming mathe
 		\item [{\tt code}:] ~~~$\delta_i^{(\mathrm{tc})} = g$~~~Whatever the tag code is for the release group the fish was a part of.  In fish without CWTs, this value will not be directly known, but we can still think of each
 		fish as having an origin.
 		use $g$ to index these tag codes.
-		\item [\textcolor{blue}{{\tt unknown}}:] ~~~$\delta_i^{(\mathrm{tc})} = \mbox{?}$~~~Whenever the tag code is unknown: ``Tag lost before read,'' 
-		``Tag not readable,'' and ``Unresolved discrepancy.''
-		\item [{\tt irrelevant}:] This is the case if {\tt cwt\_status} is not {\tt cwt}.  
+		\item [\textcolor{blue}{{\tt unknown}}:] ~~~$\delta_i^{(\mathrm{tc})} = \mbox{?}$~~~This is the starting value
+		for anything that is a {\tt no\_read}.
+		\item [\textcolor{blue}{{\tt pending}}:] ~~~$\delta_i^{(\mathrm{tc})} = p$ ~~~~ This is the value we give things
+		that have unknown cwt status.  
+		\item [{\tt irrelevant}:] This is the case if {\tt cwt\_status} is not {\tt cwt}, {\tt no\_read}, or {\tt unknown}.  
 	\end{description}
 \end{description}
 
 
-The states that constitute ``missing data'' or ``latent variables,'' as they are sometimes
-called, are colored blue.
+The states that constitute ``missing data'' or ``latent variables,'' and which may be updated
+are colored blue.
 
 \subsection{MCMC}
 
@@ -332,12 +336,12 @@ negligible.
 Sampling updated values for $\btheta$, given current values for the missing data is straightforward---the 
 full conditional distribution for $\btheta$ is a Dirichlet distribution
 with parameters equal to the prior weight on each
-release group plus the number fish from each release group.  Were we using this method to make actual estimates
+release group plus the number of fish from each release group.  Were we using this method to make actual estimates
 for informing fishery management, it would probably make sense to spend a lot of time formulating a prior
 for the tag codes that used information about proximity or similarity of different release groups. In our
-case, however, since we merely want ``reasonable'' estimates for parameterizing a set of simulations, I will assume
+case, however, since we merely want ``reasonable'' estimates for parameterizing a set of simulations, \textcolor{red}{I will assume
 the prior on $\btheta$ is a Dirichlet distribution with overall weight determined to give roughly the correct
-number of different tag codes (this can be derived from properties of the multivariate Ewens distribution.
+number of different tag codes (this can be derived from properties of the multivariate Ewens distribution.}
 
 Given a current value for $\btheta$, the values of the {\tt unknown} variables, on all the sampled fish that have
 {\tt unknown} values, can be simulated from their full conditional distribution.  For example,

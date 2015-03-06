@@ -466,9 +466,15 @@ recovery_histo_plot(tmp)
 ggsave(file = "recovery_histo_panel_2.pdf", width = 8.5, height = 11)
 
 
+################################ PREPAPRING MORE FOR THE MCMC ################
 
-#### And now, finally, we are in a position to continue with the analysis  #####
+#### Get things to correspond to the notation in the .tex document  ####
 
-# we will want what is in rec2012 and distinct codes.  With that I think we can
-# move forward.
+# cwt_status must be "cwt" even if it was not read, but the tag_code has to be unknown.
+rec2012$tag_code[rec2012$cwt_status == "no_read"] <- "unknown"
+rec2012$tag_code[rec2012$cwt_status == "unknown"] <- "pending"
+rec2012$tag_code[rec2012$cwt_status %in% c("awt", "no_tag")] <- "irrelevant"
+
+
+
 
