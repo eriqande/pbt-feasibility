@@ -468,7 +468,7 @@ ggsave(file = "recovery_histo_panel_2.pdf", width = 8.5, height = 11)
 
 ################################ PREPAPRING MORE FOR THE MCMC ################
 
-#### Get things to correspond to the notation in the .tex document  ####
+#### Get recovery data to correspond to the notation in the .tex document  ####
 
 # cwt_status must be "cwt" even if it was not read, but the tag_code has to be unknown.
 rec2012$tag_code[rec2012$cwt_status == "no_read"] <- "unknown"
@@ -476,5 +476,144 @@ rec2012$tag_code[rec2012$cwt_status == "unknown"] <- "pending"
 rec2012$tag_code[rec2012$cwt_status %in% c("awt", "no_tag")] <- "irrelevant"
 
 
+#### Summarize the release data into the f and p values that we need for each tag code ####
+mark_and_tag_rates <- releases2004_2012$Release_ID %>%
+  filter(tag_variety == "cwt") %>%
+  filter(tag_code_or_release_id %in% rec2012$tag_code)  %>%  # only deal with the codes we will need
+  mutate(tag_code = tag_code_or_release_id,
+         n_total_fish = n_tag_ad + n_tag_noad + n_notag_ad + n_notag_noad,
+         n_marked = n_tag_ad + n_notag_ad,
+         n_unmarked = n_tag_noad + n_notag_noad,
+         f_marked = n_marked / n_total_fish,
+         f_unmarked = n_unmarked / n_total_fish,
+         p_marked = ifelse(n_marked > 0, n_tag_ad / n_marked, 0),
+         p_unmarked = ifelse(n_unmarked > 0, n_tag_noad / n_unmarked, 0)
+         )  %>% 
+  ungroup() %>%
+  select(tag_code:p_unmarked)
 
+
+#### To look these over I am going to make some plots ####
+ggplot(mark_and_tag_rates, aes(x = n_total_fish)) + geom_histogram()
+
+# so there are some very large 
+# now look at the proportion marked fish carrying cwts broken down by marking rate
+ggplot(mark_and_tag_rates, aes(x = n_total_fish, y = f_marked)) + geom_point() + scale_x_log10()
+
+tmp <- mark_and_tag_rates
+tmp$mark_fract <- cut(f_marked, c(-0.001, seq(0,1,by=0.2)))
+ggplot(tmp, aes(x = n_total_fish, 
+                               y = p_marked, 
+                               colour = mark_fract
+                               )) + 
+  geom_point(alpha = 0.3, size = 1.5) + 
+  scale_x_log10() +
+  facet_wrap( ~ mark_fract)
+
+
+#### Summarize the catch/sample data that we need for each recovery group ####
+
+# first, get the catch-sample data just for the catch-sample IDs that were involved 
+cs1 <- readRDS("data/catch_sample.rds")
+
+# pick out only those catch-samples that are relevant, but there is a problem.  Some it appears  some catch_sample_ids
+# occur in more than one recovery group.  Blast!
+# here are the catch_sample_ids
+dupie_cs <- rec2012 %>%
+  group_by(catch_sample_id, recovery_group) %>%
+  distinct %>% 
+  group_by(catch_sample_id) %>% 
+  tally %>%
+  filter(n>1, !is.na(catch_sample_id)) %>%
+  select(catch_sample_id)
+
+# now we can see which recovery groups they are in:
+lame <- rec2012 %>% ungroup %>%
+  group_by(catch_sample_id, recovery_group) %>%
+  tally() %>%
+  ungroup %>%
+  filter(catch_sample_id %in% dupie_cs$catch_sample_id)
+  
+# and if we want to see just the recovery groups involved we can do:
+lame %>% ungroup() %>%
+  group_by(recovery_group) %>%
+  distinct
+
+# So, it appears that the way forward on this is to lump 14-CA, 15-CA, 17-CA, and 18-CA
+# and also to lump 01-AK-NW and 02-AK-NW.
+# I'll just go ahead and do that:
+rec2012$recovery_group[str_detect(rec2012$recovery_group, "^1[4578]-CA") ] <-
+  paste(unique(rec2012$recovery_group[str_detect(rec2012$recovery_group, "^1[4578]-CA") ]), collapse = ", ")
+
+rec2012$recovery_group[str_detect(rec2012$recovery_group, "^0[12]-AK") ] <-
+  paste(unique(rec2012$recovery_group[str_detect(rec2012$recovery_group, "^0[12]-AK") ]), collapse = ", ")
+
+# also toss out those missing a catch_sample_id:  we dump about 8000 here.
+rec2012 <- rec2012 %>% 
+  filter(!is.na(catch_sample_id))
+
+# So, that was lame, but necessary to keep from slowing us down here....
+# check the number of distinct catch_sample_ids
+rec2012 %>% 
+  group_by(catch_sample_id, recovery_group) %>%
+  tally()
+
+# continuing, we attach recovery_groups to every catch_sample_id, 
+cs2 <- rec2012 %>%  # dump the roughly 8000 fish that don't have a catch_sample_id!
+  group_by(catch_sample_id, recovery_group) %>% 
+  summarise(tot_fish_in_recov = n()) %>%
+  inner_join(cs1 %>% filter(catch_year == 2012))  # catch_sample_ids are not all unique across years...
+
+
+# now we just look at some numbers sampled in different scenarios
+cs2 %>%
+  group_by(recovery_group, detection_method) %>%
+  summarise_each(funs(sum(., na.rm = TRUE)), vars = mr_1st_partition_size:mr_2nd_sample_obs_adclips)
+
+# see if we find NA's where maybe be oughtn't
+cs2 %>%
+  group_by(recovery_group, detection_method) %>%
+  summarise_each(funs(sum(.)), vars = mr_1st_partition_size:mr_2nd_sample_obs_adclips)
+# this data base is sloppy.
+
+# now, find rows that have NA's in "mr_1st_sample_known_ad_status" "mr_1st_sample_obs_adclips" 
+# 'cuz the damn Canadians have some in there. Is that a problem?
+bc_bozos <- cs2 %>%
+  filter(detection_method == "V" & (is.na(mr_1st_sample_known_ad_status) | is.na(mr_1st_sample_obs_adclips) ))
+# Well, those are just catches that they didn't sample for Marks.  OK....Whatever. The num_sampled is NA in it
+# so it shouldn't throw things off.
+
+# now, what about electronic WA fisheries that don't have "mr_2nd_sample_known_ad_status" "mr_2nd_sample_obs_adclips"
+cs2 %>%
+  filter(detection_method == "E" & (is.na(mr_2nd_sample_known_ad_status) | is.na(mr_2nd_sample_obs_adclips) ))
+# that turns out to be just 2 rows, with almost no fish sampled.  Not a problem, really.
+
+
+## Now, we will do something to try to identify whether Electronic sampling is beep-independed or beep-dependent.
+tmp <- as.data.frame(cs2)
+tmp2 <- tmp[, c("mr_1st_partition_size", "mr_1st_sample_size", "mr_1st_sample_known_ad_status", "mr_1st_sample_obs_adclips", "mr_2nd_partition_size",
+       "mr_2nd_sample_size", "mr_2nd_sample_known_ad_status", "mr_2nd_sample_obs_adclips")]
+tmp2[is.na(tmp2)] <- 0
+tmp3 <- as.matrix(tmp2)
+first <- rowSums(tmp3[, 1:4])
+second <- rowSums(tmp3[, 5:8])
+beep_clip_sampling <- rep(NA, nrow(cs2))
+beep_clip_sampling[cs2$detection_method == "E" & first > 0 & second == 0] <- "independent"
+beep_clip_sampling[cs2$detection_method == "E" & first > 0 & second > 0] <- "dependent"
+
+
+# investigate those
+cs2$electronic_mark_sampling_type <- beep_clip_sampling
+cs2 %>%
+  group_by(recovery_group, detection_method, electronic_mark_sampling_type) %>%
+  summarise_each(funs(sum(., na.rm = TRUE)), vars = mr_1st_partition_size:mr_2nd_sample_obs_adclips)
+
+# from this, it is clear that the mark sampling is essentially all dependent (except for
+# three fish which were meant to be dependent, no doubt)  So, we will treat them as such
+# and just mix them all together.
+
+# so we are back here:
+cs2 %>%
+  group_by(recovery_group, detection_method) %>%
+  summarise_each(funs(sum(., na.rm = TRUE)), vars = mr_1st_partition_size:mr_2nd_sample_obs_adclips)
 
