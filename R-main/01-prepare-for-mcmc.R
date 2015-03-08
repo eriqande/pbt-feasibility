@@ -661,3 +661,72 @@ rec2012 %>%
   group_by(recovery_group, cwt_status, ad_clipped, beep) %>%
   tally() %>%
   as.data.frame
+
+
+
+#### Start Developing the Estimation Function  ####
+
+# this is here to set values while developing the function below
+if(FALSE) {
+  r <- rec2012
+  cs <- cs2
+  dc <- distinct_codes
+  rg <- "06-BC  (4480)"
+}
+#' This function takes something like rec2012 and cs2 and distinct_codes and picks out the required recovery group it
+#' 
+#'  It picks out the recovery_group and then it summarizes the catch sample data as we need it.  The resulting list
+#'  is what gets passed to the estimation function. 
+#'
+#' @param r the full data frame of recovery data
+#' @param cs the full data frame of catch sample data 
+#' @param dc the data frame of distinct tag-codes to deal with
+#' @param rg the recovery group (a string) to pull out of r and cs
+squash_data_for_estimation <- function(r, cs, dc, rg) {
+  ret <- list()
+  
+  ## first prep the recovery data
+  ret$recovery <- r %>% filter(recovery_group == rg)
+  
+  ## then summarise the catch-sample data
+  tmp <- cs %>% 
+    filter(recovery_group == rg) %>%
+    group_by(detection_method) %>%
+    summarise_each(funs(sum(., na.rm = TRUE)), vars = mr_1st_partition_size:mr_2nd_sample_obs_adclips)
+  
+  # this is just some silly stuff to get the names
+  tmp_summary_names <- cs %>%
+    ungroup %>%
+    group_by(detection_method) %>%
+    select(mr_1st_partition_size:mr_2nd_sample_obs_adclips) %>%
+    names()
+  
+  names(tmp) <- tmp_summary_names
+  
+  ret$catch_sample <- tmp
+  
+  ## finally, get the vector of distinct codes
+  tmp <- dc %>% 
+    select(tag_code) %>%
+    filter(tag_code != "unknown" & tag_code != "pending")  # just to be on the safe side
+
+  
+  ret$distinct_codes <- as.character(tmp$tag_code)
+  
+  # and then return it all
+  ret
+}
+
+
+
+
+## Here is actual function that will do the estimation
+#' Do the Bayesian mixed fishery proportion estimation
+#' 
+#' Takes as input the output of squash_data_for_estimation
+#' @param  s  The "squashed" list of input data
+cwt_ppn_estimation_function <- function(s) {
+  # preliminary stuff, define variables, etc.
+  
+}
+
