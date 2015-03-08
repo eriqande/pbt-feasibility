@@ -631,16 +631,33 @@ tmp1 <- rec2012 %>%
 tmp2 <- cs2 %>%
   group_by(recovery_group) %>%
   summarise(adclipped_fish_reported_in_catch_sample = sum(mr_1st_sample_obs_adclips, na.rm = TRUE))
-  
+ 
+tmp3 <- rec2012 %>% 
+  filter(ad_clipped == "yes" | ad_clipped == "unknown") %>%
+  group_by(recovery_group) %>%
+  summarise(adclipped_or_unknown_fish_in_recovery_data_base = n())
+
 
 compare_totals <- inner_join(tmp1, tmp2)
-
-ggplot(compare_totals, aes(x = adclipped_fish_in_recovery_data_base, y = adclipped_fish_reported_in_catch_sample)) +
+ggplot(compare_totals, aes(y = adclipped_fish_in_recovery_data_base, x = adclipped_fish_reported_in_catch_sample)) +
   geom_point()  + 
   geom_abline(intercept = 0, slope = 1)
 
 # which shows that we are pretty much right on except BC and OR.  OK....
 # 07-BC really doesn't work!  All the others are OK, but 12-WA and 07-BC are too small anyway.
 
+# and we can see what the picture looks like when we include the "unknown" ad-clipped fish
+compare_totals <- inner_join(tmp3, tmp2)
+ggplot(compare_totals, aes(y = adclipped_or_unknown_fish_in_recovery_data_base, x = adclipped_fish_reported_in_catch_sample)) +
+  geom_point()  + 
+  geom_abline(intercept = 0, slope = 1)
+# that helps for some but not for others.
+
 
 # So, we can continue!  
+
+# let's just enumerate fish with different qualities/features/properties
+rec2012 %>%
+  group_by(recovery_group, cwt_status, ad_clipped, beep) %>%
+  tally() %>%
+  as.data.frame
