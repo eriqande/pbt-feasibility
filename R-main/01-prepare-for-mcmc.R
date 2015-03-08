@@ -238,6 +238,9 @@ locs <- tbl_df(read.csv("data/locations.csv", stringsAsFactors = F, na.strings =
 our_locs <- tbl_df(cbind(locs, parse_location_codes(locs$location_code))) %>%
   select(location_code, rmis_region, rmis_basin, full_loc_code:sub_location)
 
+our_locs <- our_locs %>% distinct(location_code)  # for some reason there are duplicated location_codes!  We toss them out so these is just one of each here.
+
+
 # and then join those to rec
 rec_with_locs <- left_join(rec, our_locs, by = c("recovery_location_code" = "location_code"))
 
@@ -501,7 +504,7 @@ ggplot(mark_and_tag_rates, aes(x = n_total_fish)) + geom_histogram()
 ggplot(mark_and_tag_rates, aes(x = n_total_fish, y = f_marked)) + geom_point() + scale_x_log10()
 
 tmp <- mark_and_tag_rates
-tmp$mark_fract <- cut(f_marked, c(-0.001, seq(0,1,by=0.2)))
+tmp$mark_fract <- cut(mark_and_tag_rates$f_marked, c(-0.001, seq(0,1,by=0.2)))
 ggplot(tmp, aes(x = n_total_fish, 
                                y = p_marked, 
                                colour = mark_fract
@@ -548,7 +551,7 @@ rec2012$recovery_group[str_detect(rec2012$recovery_group, "^1[4578]-CA") ] <-
 rec2012$recovery_group[str_detect(rec2012$recovery_group, "^0[12]-AK") ] <-
   paste(unique(rec2012$recovery_group[str_detect(rec2012$recovery_group, "^0[12]-AK") ]), collapse = ", ")
 
-# also toss out those missing a catch_sample_id:  we dump about 8000 here.
+# also toss out those missing a catch_sample_id:  we dump about 6000 here.
 rec2012 <- rec2012 %>% 
   filter(!is.na(catch_sample_id))
 
@@ -559,7 +562,7 @@ rec2012 %>%
   tally()
 
 # continuing, we attach recovery_groups to every catch_sample_id, 
-cs2 <- rec2012 %>%  # dump the roughly 8000 fish that don't have a catch_sample_id!
+cs2 <- rec2012 %>%  
   group_by(catch_sample_id, recovery_group) %>% 
   summarise(tot_fish_in_recov = n()) %>%
   inner_join(cs1 %>% filter(catch_year == 2012))  # catch_sample_ids are not all unique across years...
@@ -589,7 +592,7 @@ cs2 %>%
 # that turns out to be just 2 rows, with almost no fish sampled.  Not a problem, really.
 
 
-## Now, we will do something to try to identify whether Electronic sampling is beep-independed or beep-dependent.
+## Now, we will do something to try to identify whether Electronic sampling is beep-independent or beep-dependent.
 tmp <- as.data.frame(cs2)
 tmp2 <- tmp[, c("mr_1st_partition_size", "mr_1st_sample_size", "mr_1st_sample_known_ad_status", "mr_1st_sample_obs_adclips", "mr_2nd_partition_size",
        "mr_2nd_sample_size", "mr_2nd_sample_known_ad_status", "mr_2nd_sample_obs_adclips")]
@@ -616,4 +619,28 @@ cs2 %>%
 cs2 %>%
   group_by(recovery_group, detection_method) %>%
   summarise_each(funs(sum(., na.rm = TRUE)), vars = mr_1st_partition_size:mr_2nd_sample_obs_adclips)
+# So, the BC-06 sample is the only one with both electronic and visual sampling.
 
+#### Check that the total numbers of fish in the recovery file and the catch/sample information is consistent ####
+
+tmp1 <- rec2012 %>% 
+  filter(ad_clipped == "yes") %>%
+  group_by(recovery_group) %>%
+  summarise(adclipped_fish_in_recovery_data_base = n())
+
+tmp2 <- cs2 %>%
+  group_by(recovery_group) %>%
+  summarise(adclipped_fish_reported_in_catch_sample = sum(mr_1st_sample_obs_adclips, na.rm = TRUE))
+  
+
+compare_totals <- inner_join(tmp1, tmp2)
+
+ggplot(compare_totals, aes(x = adclipped_fish_in_recovery_data_base, y = adclipped_fish_reported_in_catch_sample)) +
+  geom_point()  + 
+  geom_abline(intercept = 0, slope = 1)
+
+# which shows that we are pretty much right on except BC and OR.  OK....
+# 07-BC really doesn't work!  All the others are OK, but 12-WA and 07-BC are too small anyway.
+
+
+# So, we can continue!  
