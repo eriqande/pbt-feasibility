@@ -480,11 +480,8 @@ rec2012$tag_code[rec2012$cwt_status %in% c("awt", "no_tag")] <- "irrelevant"
 
 
 #### Summarize the release data into the f and p values that we need for each tag code ####
-mark_and_tag_rates <- releases2004_2012$Release_ID %>%
-  filter(tag_variety == "cwt") %>%
-  filter(tag_code_or_release_id %in% rec2012$tag_code)  %>%  # only deal with the codes we will need
-  mutate(tag_code = tag_code_or_release_id,
-         n_total_fish = n_tag_ad + n_tag_noad + n_notag_ad + n_notag_noad,
+mark_and_tag_rates <- distinct_codes %>%
+  mutate(n_total_fish = n_tag_ad + n_tag_noad + n_notag_ad + n_notag_noad,
          n_marked = n_tag_ad + n_notag_ad,
          n_unmarked = n_tag_noad + n_notag_noad,
          f_marked = n_marked / n_total_fish,
@@ -493,7 +490,7 @@ mark_and_tag_rates <- releases2004_2012$Release_ID %>%
          p_unmarked = ifelse(n_unmarked > 0, n_tag_noad / n_unmarked, 0)
          )  %>% 
   ungroup() %>%
-  select(tag_code:p_unmarked)
+  select(tag_code, tag_code_x_value:p_unmarked)
 
 
 #### To look these over I am going to make some plots ####
@@ -666,13 +663,6 @@ rec2012 %>%
 
 #### Start Developing the Estimation Function  ####
 
-# this is here to set values while developing the function below
-if(FALSE) {
-  r <- rec2012
-  cs <- cs2
-  dc <- distinct_codes
-  rg <- "06-BC  (4480)"
-}
 #' This function takes something like rec2012 and cs2 and distinct_codes and picks out the required recovery group it
 #' 
 #'  It picks out the recovery_group and then it summarizes the catch sample data as we need it.  The resulting list
@@ -680,9 +670,10 @@ if(FALSE) {
 #'
 #' @param r the full data frame of recovery data
 #' @param cs the full data frame of catch sample data 
-#' @param dc the data frame of distinct tag-codes to deal with
+#' @pamam fp the data frame that has the f and p variables (the mark and tag rates of the different tag codes) and it includes the distinct codes that correspond
+#' to the theta_g's that we will estimate.  
 #' @param rg the recovery group (a string) to pull out of r and cs
-squash_data_for_estimation <- function(r, cs, dc, rg) {
+squash_data_for_estimation <- function(r, cs, fp, rg) {
   ret <- list()
   
   ## first prep the recovery data
@@ -705,20 +696,23 @@ squash_data_for_estimation <- function(r, cs, dc, rg) {
   
   ret$catch_sample <- tmp
   
-  ## finally, get the vector of distinct codes
-  tmp <- dc %>% 
-    select(tag_code) %>%
-    filter(tag_code != "unknown" & tag_code != "pending")  # just to be on the safe side
-
-  
-  ret$distinct_codes <- as.character(tmp$tag_code)
+  ## then get the mark and tag rates
+  ret$mark_and_tag <- fp
   
   # and then return it all
   ret
 }
 
 
-
+# this is here to set values while developing the function below
+if(FALSE) {
+  r <- rec2012
+  cs <- cs2
+  fp <- mark_and_tag_rates
+  rg <- "06-BC  (4480)"
+  
+  s <- squash_data_for_estimation(r, cs, fp, rg)
+}
 
 ## Here is actual function that will do the estimation
 #' Do the Bayesian mixed fishery proportion estimation
@@ -728,5 +722,86 @@ squash_data_for_estimation <- function(r, cs, dc, rg) {
 cwt_ppn_estimation_function <- function(s) {
   # preliminary stuff, define variables, etc.
   
+  ## here are the parameters of the models.  The proportions of fish from the different tag_groups
+  theta_gs <- rep(NA, length.out = nrow(s$mark_and_tag))  # set them to NA for now.  We will initialize them later
+  names(theta_gs) <- s$mark_and_tag$tag_code
+  
+  theta_uas <- rep(NA, 4)
+  names(theta_uas) <- c("A_plus", "A_minus", "U_plus", "U_minus")
+  
+  ## here are the directly observed counts of fish corresponding to the tag_codes in theta_gs
+  theta_g_obs_n <- rep(0, length.out = nrow(s$mark_and_tag))
+  names(theta_g_obs_n) <- names(theta_gs)
+  tmp <- s$recovery %>%
+    filter(cwt_status == "cwt") %>%
+    group_by(tag_code) %>%
+    tally()
+  theta_g_obs_n[tmp$tag_code] <- tmp$n
+  
+  # and here are the directly observed fish amongst the recoveries in the "A_plus", "A_minus", "U_plus", "U_minus" categories
+  # note that we can't actually observe U_plus and U_minus directly, so we won't be setting them here
+  theta_uas_n_obs <- rep(0, 4)
+  names(theta_uas_n_obs) <- names(theta_uas)
+  tmp <- s$recovery %>%
+    filter(cwt_status == "awt") %>%
+    group_by(ad_clipped) %>%
+    tally()
+  if(nrow(tmp) > 0) {
+    if(length(tmp$n[tmp$ad_clipped == "no"]) > 0) { theta_uas_n_obs["A_minus"] <- tmp$n[tmp$ad_clipped == "no"]}
+    if(length(tmp$n[tmp$ad_clipped == "yes"]) > 0) { theta_uas_n_obs["A_plus"] <- tmp$n[tmp$ad_clipped == "yes"]}
+  }
+  
+  ## and now we sum up the numbers of fish that have cwt and ad-clips.  
+  recovs_factored <- s$recovery
+  recovs_factored$ad_clipped <- factor(recovs_factored$ad_clipped, levels = c("yes", "no", "unknown"))
+  recovs_factored$cwt_status <- factor(recovs_factored$cwt_status, levels = c("cwt", "no_read", "awt", "no_tag", "unknown"))
+  recov_sums <- as.data.frame(table(recovs_factored$ad_clipped, recovs_factored$cwt_status))
+  names(recov_sums) <- c("ad_clipped", "cwt_status", "n")
+  
+  
+  ## and this is the general shape of the values that we can compute probabilities for
+  adc_cwt <- recov_sums %>% filter(ad_clipped != "unknown", cwt_status != "unknown", cwt_status != "no_read")  # I have to deal with the no_read category somehow later...
+  
+  ## and for the ones that have unknown values, we will store those numbers in a list.
+  tmp <- recov_sums %>% filter(ad_clipped == "unknown" | cwt_status == "unknown")
+  latent_counts <- lapply(1:nrow(tmp), function(x) {
+    ret <- list()
+    ret$vars <- c(as.character(tmp[x,1]), as.character(tmp[x,2]))
+    names(ret$vars) <- names(tmp)[1:2]
+    ret$n <- tmp[x,3]
+    ret
+  })
+  # those are the counts of individuals in these latent categories that include an "unknown"
+  
+  
+  
+  ## Now, here we will initialize the theta_gs to something silly---just set it to the observed proportion, plus a little bit of prior...
+  ## I am just doing this while developing...
+  theta_gs <- theta_g_obs_n + 0.5  # don't bother normalizing yet, as we will have to normalize things altogether at the end
+
+  # and also initialize the theta_uas.  I'm just gonna set A_plus and and A_minus according to the observation and then let U_minus be about 50% and see
+  # if it can get away from that value in the course of the MCMC.  And U_plus to be about 5%
+  theta_uas <- theta_uas_n_obs + 1
+  tmp <- sum(theta_gs, theta_uas)
+  theta_uas[c("U_plus", "U_minus" )] <- c(0.8 * tmp, 0.05 * tmp) 
+  
+  totsum <- sum(theta_gs, theta_uas)
+  theta_gs <- theta_gs / totsum
+  theta_uas <- theta_uas / totsum
+ 
+  
+  ## Now that those are initialized, I can compute our main probability table for visually sampled fisheries
+  ## It will be convenient to name some convenience variables here
+  fm <- s$mark_and_tag$f_marked
+  fu <- s$mark_and_tag$f_unmarked
+  pm <- s$mark_and_tag$p_marked
+  pu <- s$mark_and_tag$p_unmarked
+  
+  vis_samp_prob_table <- adc_cwt
+  vis_samp_prob_table$probs <- c(
+    sum(theta_gs * fm * pm),  #   yes, cwt  (<--- ad_clipped, cwt_status)
+    sum(theta_gs * fu * pu)
+    
+    )
 }
 
