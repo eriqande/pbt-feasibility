@@ -758,17 +758,22 @@ cwt_ppn_estimation_function <- function(s) {
   recov_sums <- as.data.frame(table(recovs_factored$ad_clipped, recovs_factored$cwt_status))
   names(recov_sums) <- c("ad_clipped", "cwt_status", "n")
   
+  # for now, just deal with the visual recoveries.  We do that by just adding the number
+  # of no-adclip fish from the catch-sample information into the no, unknown category
+  recov_sums$n[recov_sums$ad_clipped == "no" & recov_sums$cwt_status == "unknown"] <- 
+    s$catch_sample[s$catch_sample$detection_method == "V", "mr_1st_sample_known_ad_status"] - 
+    s$catch_sample[s$catch_sample$detection_method == "V", "mr_1st_sample_obs_adclips"]
   
   ## and this is the general shape of the values that we can compute probabilities for
   adc_cwt <- recov_sums %>% filter(ad_clipped != "unknown", cwt_status != "unknown", cwt_status != "no_read")  # I have to deal with the no_read category somehow later...
   
   ## and for the ones that have unknown values, we will store those numbers in a list.
-  tmp <- recov_sums %>% filter(ad_clipped == "unknown" | cwt_status == "unknown")
-  latent_counts <- lapply(1:nrow(tmp), function(x) {
+  tmp <- recov_sums %>% filter((ad_clipped == "unknown" | cwt_status == "unknown") & cwt_status != "no_read")
+  vis_counts <- lapply(1:nrow(tmp), function(x) {  # I am name those "vis_counts" because it will be appropriate for visually sampled fisheries
     ret <- list()
     ret$vars <- c(as.character(tmp[x,1]), as.character(tmp[x,2]))
     names(ret$vars) <- names(tmp)[1:2]
-    ret$n <- tmp[x,3]
+    ret$n <- unlist(tmp[x,3])
     ret
   })
   # those are the counts of individuals in these latent categories that include an "unknown"
@@ -783,7 +788,7 @@ cwt_ppn_estimation_function <- function(s) {
   # if it can get away from that value in the course of the MCMC.  And U_plus to be about 5%
   theta_uas <- theta_uas_n_obs + 1
   tmp <- sum(theta_gs, theta_uas)
-  theta_uas[c("U_plus", "U_minus" )] <- c(0.8 * tmp, 0.05 * tmp) 
+  theta_uas[c("U_minus", "U_plus" )] <- c(0.8 * tmp, 0.05 * tmp) 
   
   totsum <- sum(theta_gs, theta_uas)
   theta_gs <- theta_gs / totsum
@@ -800,8 +805,41 @@ cwt_ppn_estimation_function <- function(s) {
   vis_samp_prob_table <- adc_cwt
   vis_samp_prob_table$probs <- c(
     sum(theta_gs * fm * pm),  #   yes, cwt  (<--- ad_clipped, cwt_status)
-    sum(theta_gs * fu * pu)
-    
+    sum(theta_gs * fu * pu),  #    no, cwt
+    theta_uas["A_plus"],      #   yes, awt
+    theta_uas["A_minus"],     #    no, awt
+    sum(theta_gs * fm * (1 - pm)) + theta_uas["U_plus"], #   yes, no_tag
+    sum(theta_gs * fu * (1 - pu)) + theta_uas["U_minus"] #    no, no_tag
     )
+  
+
+  ### before doing mcmc, we need a function that will take elements of vis_counts, and simulate all the 
+  ### individuals in them into the rows of an imputed version of adc_count.  vp is the vis_count_table.
+  ### This thing essentially does the conditioning that needs to get done.
+  impute <- function(x, vp) {
+    p <- vp$probs
+    if(x$vars["ad_clipped"] != "unknown") {
+      p[ vp$ad_clipped != x$vars["ad_clipped"]] <- 0
+    }
+    if(x$vars["cwt_status"] != "unknown") {
+      p[ vp$cwt_status != x$vars["cwt_status"]] <- 0
+    }
+    p <- p / sum(p) 
+    
+    # then return a multinomial allocation of all these inividuals into "fully-observed" categories
+    rmultinom(1, size = x$n, prob = p)
+    
+    #list(x$vars, p)
+  }
+  
+  # then we can lapply that function, bind the results and rowSum them to get the allocations of those individuals.  Cool.
+  alloc <- rowSums(do.call(cbind, lapply(vis_counts, function(x) impute(x, vis_samp_prob_table))))
+  
+  # look at what that looks like:
+  cbind(vis_samp_prob_table, alloc)
+  
+  #### Now, we have to allocate some of those individuals further to individual tag codes (or to U_plus and U_minus), so that
+  #### we can use that information to simulate a new value for theta_gs and theta_uas.  
+  
 }
 
