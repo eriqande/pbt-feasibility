@@ -224,7 +224,6 @@ rec <- tmp %>%
   select(tag_code, catch_sample_id, recovery_location_code, ad_clipped, cwt_status, beep)
 
 
-
 #### 2. Split up location codes into hierarchical components and join them with the recovery data  ####
 
 # get the location codes and filter them to only those that have recoveries that we are focusing on
@@ -338,7 +337,7 @@ g <- ggplot(data = rec12_4_plot) +
 ggsave(file = "recovery_trees.pdf", width = 18.5, height = 20)
 
 
-#### 2.2 Now, based on the crazy recovery_trees.pdf plot, here we will aggregate recovery locations, and name them, etc. ####
+#### 2.2 Based on the recovery_trees.pdf plot, aggregate recovery locations, and name them, etc. ####
 # This isn't super reproducible, but I am just going to focus on run_year = 2012 here
 # and do it by hand...
 fishery_breaks <- c(0, 22.1, 35.1, 78.1, 116.1, 235.1,  # 5 groups in alaska
@@ -399,7 +398,7 @@ rec2012 <- rec2012_heavy %>%
   select(tag_code:beep, recovery_group)
 
 
-#### 2.3 Having aggregated stuff (and tossed some) get a data frame that shows just the particular tag_codes in our aggregated recovery data, and order them ####
+#### 2.3 Get the "distinct_codes" and order them  ####
 # Now, filter it to just cwt recoveries, and store just the distinct codes,
 # and on each of those reattach the order_me and the state, and basin, info,
 # and give each a unique number that counts as their x-position
@@ -413,6 +412,7 @@ distinct_codes <- rec2012 %>%
 
 
  
+
 
 #### 2.4 Make some useful and important plots of the recoveries by tag group  ####
 
@@ -467,9 +467,8 @@ recovery_histo_plot(tmp)
 ggsave(file = "recovery_histo_panel_2.pdf", width = 8.5, height = 11)
 
 
-################################ PREPAPRING MORE FOR THE MCMC ################
 
-#### Get recovery data to correspond to the notation in the .tex document  ####
+#### 2.5 Modify recovery data to correspond to the notation in the .tex document  ####
 
 # cwt_status must be "cwt" even if it was not read, but the tag_code has to be unknown.
 rec2012$tag_code[rec2012$cwt_status == "no_read"] <- "unknown"
@@ -477,7 +476,10 @@ rec2012$tag_code[rec2012$cwt_status == "unknown"] <- "pending"
 rec2012$tag_code[rec2012$cwt_status %in% c("awt", "no_tag")] <- "irrelevant"
 
 
-#### Summarize the release data into the f and p values that we need for each tag code ####
+###################### FURTHER SUMMARIZE RELEASE DATA TO GET THE f's and p's ################
+
+
+#### 1. Summarize the release data into the f and p values that we need for each tag code ####
 mark_and_tag_rates <- distinct_codes %>%
   mutate(n_total_fish = n_tag_ad + n_tag_noad + n_notag_ad + n_notag_noad,
          n_marked = n_tag_ad + n_notag_ad,
@@ -491,7 +493,7 @@ mark_and_tag_rates <- distinct_codes %>%
   select(tag_code, tag_code_x_value:p_unmarked)
 
 
-#### To look these over I am going to make some plots ####
+#### 2. Make some plots to investigate sizes of release groups ####
 ggplot(mark_and_tag_rates, aes(x = n_total_fish)) + geom_histogram()
 
 # so there are some very large 
@@ -508,13 +510,20 @@ ggplot(tmp, aes(x = n_total_fish,
   scale_x_log10() +
   facet_wrap( ~ mark_fract)
 
+ggsave("ppn_marked_that_have_tags_panels.pdf", width = 10, height = 8)
 
-#### Summarize the catch/sample data that we need for each recovery group ####
+
+#### SUMMARIZE THE CATCH/SAMPLE DATA TO PREP FOR MCMC ####
+
+#### 1. Read in the catch-sample data ####
 
 # first, get the catch-sample data just for the catch-sample IDs that were involved 
 cs1 <- readRDS("data/catch_sample.rds")
 
-# pick out only those catch-samples that are relevant, but there is a problem.  Some it appears  some catch_sample_ids
+
+#### 2. Deal with catch-samples that occur in more than one recovery group ####
+
+# pick out only those catch-samples that are relevant, but there is a problem.  It appears  some catch_sample_ids
 # occur in more than one recovery group.  Blast!
 # here are the catch_sample_ids
 dupie_cs <- rec2012 %>%
@@ -556,6 +565,8 @@ rec2012 %>%
   group_by(catch_sample_id, recovery_group) %>%
   tally()
 
+
+#### 3. Attach recovery_groups to every catch_sample_id  ####
 # continuing, we attach recovery_groups to every catch_sample_id, 
 cs2 <- rec2012 %>%  
   group_by(catch_sample_id, recovery_group) %>% 
@@ -563,12 +574,14 @@ cs2 <- rec2012 %>%
   inner_join(cs1 %>% filter(catch_year == 2012))  # catch_sample_ids are not all unique across years...
 
 
+#### 4. Explore the results and worry about some inconsistencies, especially with the BC data ####
+
 # now we just look at some numbers sampled in different scenarios
 cs2 %>%
   group_by(recovery_group, detection_method) %>%
   summarise_each(funs(sum(., na.rm = TRUE)), vars = mr_1st_partition_size:mr_2nd_sample_obs_adclips)
 
-# see if we find NA's where maybe be oughtn't
+# see if we find NA's where maybe they oughtn't be
 cs2 %>%
   group_by(recovery_group, detection_method) %>%
   summarise_each(funs(sum(.)), vars = mr_1st_partition_size:mr_2nd_sample_obs_adclips)
@@ -587,7 +600,8 @@ cs2 %>%
 # that turns out to be just 2 rows, with almost no fish sampled.  Not a problem, really.
 
 
-## Now, we will do something to try to identify whether Electronic sampling is beep-independent or beep-dependent.
+#### 5. Classify mark-sampling as beep-dependent or beep-independent in electronically detected fisheries ####
+
 tmp <- as.data.frame(cs2)
 tmp2 <- tmp[, c("mr_1st_partition_size", "mr_1st_sample_size", "mr_1st_sample_known_ad_status", "mr_1st_sample_obs_adclips", "mr_2nd_partition_size",
        "mr_2nd_sample_size", "mr_2nd_sample_known_ad_status", "mr_2nd_sample_obs_adclips")]
@@ -616,7 +630,8 @@ cs2 %>%
   summarise_each(funs(sum(., na.rm = TRUE)), vars = mr_1st_partition_size:mr_2nd_sample_obs_adclips)
 # So, the BC-06 sample is the only one with both electronic and visual sampling.
 
-#### Check that the total numbers of fish in the recovery file and the catch/sample information is consistent ####
+
+#### 6. Check that the total numbers of fish in the recovery file and the catch/sample information is consistent ####
 
 tmp1 <- rec2012 %>% 
   filter(ad_clipped == "yes") %>%
@@ -656,5 +671,16 @@ rec2012 %>%
   group_by(recovery_group, cwt_status, ad_clipped, beep) %>%
   tally() %>%
   as.data.frame
+
+
+#### Write out data to send off to 02-do-mcmc.R ####
+
+# write it to a serialized data object list with  named components 
+saveRDS(list(recovery = rec2012, 
+             catch_sample = cs2, 
+             mark_and_tag_rate = mark_and_tag_rates),
+        compress = "xz",
+        file = "data_for_mcmc.rds")
+
 
 
