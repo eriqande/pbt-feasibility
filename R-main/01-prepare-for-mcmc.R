@@ -164,7 +164,7 @@ group_releases_hierarchically <- function(Species = 1, BroodYears = 2000:2004) {
 }
 
 
-#### Then, for any particular species and years we can do this: ####
+#### Grab all the releases from 2004 to 2012 and order the release groups by state and region ####
 
 
 # grab all these and then we will filter down later only to the ones that we've
@@ -199,11 +199,8 @@ release_order_info <- tmp %>%
 # 1. get the recovery data and condense it down to the tag_status and mark/beep status of each fish
 #    and keep that associated with the catch_sample_id.
 # 2. Use the location data base to get a hierarchical specification of all locations
-# 2. Using the catch_sample_id and the location data base, give a hierarchy of locations for each recovered fish
-# 3. Aggregate those cwt recoveries by counting them up grouped in different ways.
-# 4. Add the catch-sample data so that we know how many untagged and un-beep fish were out there.
 
-#### 1. Condensing and munging the recovery data  ####
+#### 1. Condensing and munging the recovery data. Add colums "ad_clipped", "beep", and "cwt_status"  ####
 
 # get the data (for now I just get the chinook and do one year of them.)
 all_recov <- tbl_df(readRDS("data/chinook_recoveries.rds"))
@@ -228,7 +225,7 @@ rec <- tmp %>%
 
 
 
-#### 2. Split up location codes to hierarchical components and join them with the recovery data
+#### 2. Split up location codes into hierarchical components and join them with the recovery data  ####
 
 # get the location codes and filter them to only those that have recoveries that we are focusing on
 locs <- tbl_df(read.csv("data/locations.csv", stringsAsFactors = F, na.strings = "")) %>%
@@ -238,7 +235,7 @@ locs <- tbl_df(read.csv("data/locations.csv", stringsAsFactors = F, na.strings =
 our_locs <- tbl_df(cbind(locs, parse_location_codes(locs$location_code))) %>%
   select(location_code, rmis_region, rmis_basin, full_loc_code:sub_location)
 
-our_locs <- our_locs %>% distinct(location_code)  # for some reason there are duplicated location_codes!  We toss them out so these is just one of each here.
+our_locs <- our_locs %>% distinct(location_code)  # for some reason there are duplicated location_codes!  We toss them out so there is just one of each here.
 
 
 # and then join those to rec
@@ -254,7 +251,7 @@ rec_with_locs %>%
   tally()
 
 
-#### This is just trying to make some crazy plot that will guide us in aggregating recoveries ####
+#### 2.1 Make some crazy "tree" plots that will guide us in aggregating recoveries ####
 justcwts <- rec_with_locs %>%
   filter(cwt_status == "cwt")
 
@@ -321,7 +318,7 @@ rec12 <- rec11 %>%
 number_ticks <- function(n) {function(limits) pretty(limits, n)}
 
 rec12_4_plot <- rec12  # just make a copy cause i am going to tweak it
-states_tmp <- c("AK", "BC/Yukon", "WA", "ID", "OR", "CA", "High Seas")
+states_tmp <- c("AK", "BC/Yukon", "WA", "ID", "OR", "CA", "High Seas")  # fiddle to get it to plot North to South
 rec12_4_plot$state_or_province <- factor(states_tmp[as.numeric(rec12_4_plot$state_or_province)], levels = states_tmp)
 rec12_4_plot
 g <- ggplot(data = rec12_4_plot) +
@@ -341,7 +338,7 @@ g <- ggplot(data = rec12_4_plot) +
 ggsave(file = "recovery_trees.pdf", width = 18.5, height = 20)
 
 
-#### Now, based on the recovery_trees.pdf  here we will aggregate them ####
+#### 2.2 Now, based on the crazy recovery_trees.pdf plot, here we will aggregate recovery locations, and name them, etc. ####
 # This isn't super reproducible, but I am just going to focus on run_year = 2012 here
 # and do it by hand...
 fishery_breaks <- c(0, 22.1, 35.1, 78.1, 116.1, 235.1,  # 5 groups in alaska
@@ -402,7 +399,7 @@ rec2012 <- rec2012_heavy %>%
   select(tag_code:beep, recovery_group)
 
 
-
+#### 2.3 Having aggregated stuff (and tossed some) get a data frame that shows just the particular tag_codes in our aggregated recovery data, and order them ####
 # Now, filter it to just cwt recoveries, and store just the distinct codes,
 # and on each of those reattach the order_me and the state, and basin, info,
 # and give each a unique number that counts as their x-position
@@ -416,7 +413,8 @@ distinct_codes <- rec2012 %>%
 
 
  
-#### Make some useful plots of the recoveries by tag group  ####
+
+#### 2.4 Make some useful and important plots of the recoveries by tag group  ####
 
 # then count up how many recoveries of each tag code in each recovery group
 # and join the info in distinct codes to that
