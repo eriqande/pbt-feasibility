@@ -72,7 +72,7 @@ if(FALSE) {
 #' @param no_ad_tag_ceiling.  This is a hack necessary in fisheries that don't have electronic detection (like California's) 
 #' because the estimated fraction of some release groups that are not-clipped but are tagged at a high rate can go through
 #' the roof because there are no data on whether unclipped fish have cwts.  When this happens, lots of unknown fish get
-#' allocated to the no_aclip with a cwt pile.  With no_ad_tag_ceiling set, fish in that category are tossed into the
+#' allocated to the no_adclip with a cwt pile.  With no_ad_tag_ceiling set, fish in that category are tossed into the
 #' U_minus pile no more then no_ad_tag_ceiling * (# of observed adclipped cwt fish) is less than no_ad_tag_ceiling.  Set it
 #' to a negative value to not use it at all. 
 cwt_ppn_estimation_function <- function(s, reps = 10000, thin = 10,

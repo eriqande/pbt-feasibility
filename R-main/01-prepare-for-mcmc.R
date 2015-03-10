@@ -13,7 +13,7 @@ library(dplyr)
 library(reshape2)
 library(stringr)
 source("R/rmis_cleaning.R")
-source("R/mcmc_funcs.R")
+
 
 #### Some useful helper function #####
 
