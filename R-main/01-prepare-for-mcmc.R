@@ -490,7 +490,8 @@ mark_and_tag_rates <- distinct_codes %>%
          p_unmarked = ifelse(n_unmarked > 0, n_tag_noad / n_unmarked, 0)
          )  %>% 
   ungroup() %>%
-  select(tag_code, tag_code_x_value:p_unmarked)
+  mutate(release_location_state = factor(release_location_state, levels = c("AK", "BC", "WA", "ID", "OR", "CA"))) %>%
+  select(tag_code, release_location_state, tag_code_x_value:p_unmarked)
 
 
 #### 2. Make some plots to investigate sizes of release groups ####

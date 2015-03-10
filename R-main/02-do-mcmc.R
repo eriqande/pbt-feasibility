@@ -41,7 +41,7 @@ viz_results <- mclapply(viz_fisheries, function(x) {
                                   cs = dat$catch_sample,
                                   fp = dat$mark_and_tag_rate,
                                   rg = x)
-  ret <- cwt_ppn_estimation_function(s, 1000, 1, no_ad_tag_ceiling = 0.05, 
+  ret <- cwt_ppn_estimation_function(s, 10000, 10, no_ad_tag_ceiling = 0.05, 
                               unclipped_awts_to_U_minus = TRUE)
   ret
   },
@@ -54,6 +54,13 @@ extract_mcmc_uas <- function(x, thin = 1) {
    y <- as.data.frame(do.call(rbind, x$theta_uas))
    cbind(iteration = seq(from = thin, by = thin, length.out = nrow(y)), y)
 }
+
+
+mean_mcmc_theta_gs <- function(x, toss_for_burn_in = 100) {
+  tmp <- rowMeans(do.call(cbind, x$theta_gs[-(1:toss_for_burn_in)]))
+  tbl_df(data.frame(tag_code = names(tmp), post_mean_theta_gs = tmp))
+}
+
 
 mean_mcmc_expect_pred <- function(x) {
   list(counts = colMeans(do.call(rbind, lapply(x$viz_expect_predict[-1], function(y) sapply(y[1:5], mean)))),
@@ -94,12 +101,13 @@ compare_counts$obs_counts[is.na(compare_counts$obs_counts)] <- 0
 compare_counts2 <- compare_counts %>% 
   inner_join(dat$mark_and_tag_rate)
 
-# here we color it by number of fish released
-ggplot(compare_counts2, aes(x = obs_counts, y = pred_counts, colour = log10(n_marked))) +
+# here we color it by the proportion of fish marked
+ggplot(compare_counts2, aes(x = obs_counts, y = pred_counts, colour = f_marked)) +
   geom_point() + 
   geom_abline(intercept = 0, slope = 1, colour = "grey50", size = 0.3) +
   scale_colour_gradientn(colours = rev(rainbow(7))) +
   facet_wrap(~ recovery_group, ncol = 2, scales = "free")
+ggsave("actual_vs_pred_cwt_recoveries_f_marked.pdf", width = 14, height = 8)
 
 # here is the money shot!  The ones that are off the line are ones that
 # apparently have no tags in the ad-clipped segment of the population.  So,
@@ -112,9 +120,10 @@ ggplot(compare_counts2, aes(x = obs_counts, y = pred_counts, colour = p_marked))
   geom_abline(intercept = 0, slope = 1, colour = "grey50", size = 0.3) +
   scale_colour_gradientn(colours = rev(rainbow(7))) +
   facet_wrap(~ recovery_group, ncol = 2, scales = "free")
+ggsave("actual_vs_pred_cwt_recoveries_p_marked.pdf", width = 14, height = 8)
 
 
-# now, have a look at actual and predicted number of ad-clipped fish
+#### now, have a look at actual and predicted number of ad-clipped fish and ad-clip-cwt fish...  ####
 tmp <- lapply(lapply(viz_results, mean_mcmc_expect_pred), function(y) {
   mat <- matrix(y$counts, nrow=1, byrow = T)
   colnames(mat) <- names(y$counts)
@@ -138,7 +147,45 @@ tmp3 <- dat$recovery %>%
   summarise(actual_all_ad_clipped_fish = n())
 
 # and here we put them all together into a table
-pred_counts %>%
+actual_v_pred_table <- pred_counts %>%
   inner_join(tmp2) %>%
   inner_join(tmp3) %>%
-  select(recovery_group, viz_samp_size, actual_all_ad_clipped_fish, pred_ad_count, actual_ad_clipped_cwt_fish, pred_cwt_count)
+  select(recovery_group, 
+         viz_samp_size, 
+         actual_all_ad_clipped_fish, 
+         pred_ad_count, 
+         actual_ad_clipped_cwt_fish, 
+         pred_cwt_count) 
+
+
+#### Another interesting plot to look at.  Estimated thetas versus recoveries!!  ####
+
+# this should show us how lopsided the different fisheries are with one or two release groups,
+# and also how distorted the tagging rates are relative to proportion in fishery, etc.
+
+# first get the mean theta_gs and add them to compare_counts_2
+compare_counts_to_theta <- plyr::ldply(lapply(viz_results, mean_mcmc_theta_gs), data.frame) %>% 
+  tbl_df %>%
+  rename(recovery_group = .id) %>%
+  inner_join(compare_counts2, .)
+
+
+ggplot(compare_counts_to_theta, aes(x = post_mean_theta_gs, y = obs_counts, colour = f_marked)) + 
+  geom_point() + 
+  scale_colour_gradientn(colours = rev(rainbow(7))) +
+  facet_wrap(~ recovery_group, ncol = 2, scales = "free")
+ggsave("post_mean_theta_v_counts_f_marked.pdf", width = 14, height = 8)
+
+ggplot(compare_counts_to_theta, aes(x = post_mean_theta_gs, y = obs_counts, colour = p_marked)) + 
+  geom_point() + 
+  scale_colour_gradientn(colours = rev(rainbow(7))) +
+  facet_wrap(~ recovery_group, ncol = 2, scales = "free")
+ggsave("post_mean_theta_v_counts_p_marked.pdf", width = 14, height = 8)
+
+
+ggplot(compare_counts_to_theta, aes(x = post_mean_theta_gs, y = obs_counts, colour = release_location_state)) + 
+  geom_point() + 
+  facet_wrap(~ recovery_group, ncol = 2, scales = "free")
+ggsave("post_mean_theta_v_counts_release_state.pdf", width = 14, height = 8)
+
+  

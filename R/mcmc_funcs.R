@@ -265,7 +265,8 @@ cwt_ppn_estimation_function <- function(s, reps = 10000, thin = 10,
       }
     }
     
-    #### Now, we have to allocate some of those individuals further to individual tag codes (or to U_plus and U_minus), so that
+    #### Now, we have to allocate some of those individuals
+    #### further to individual tag codes (or to U_plus and U_minus), so that
     #### we can use that information to simulate a new value for theta_gs and theta_uas. I am just going to sort of hard-wire
     #### this at the moment.  
     theta_uas_add <- rep(0, 4)
@@ -280,13 +281,18 @@ cwt_ppn_estimation_function <- function(s, reps = 10000, thin = 10,
     # for yes, no_tag
     tmp <- rmultinom(1, alloc[5], c(theta_uas["U_plus"], theta_gs * fm * (1 - pm)))
     theta_uas_add["U_plus"] <- tmp[1]
-    theta_gs_add_yes_no_read <- tmp[-1]
+    theta_gs_add_yes_no_tag <- tmp[-1] 
     
     # now for no, no_tag
     tmp <- rmultinom(1, alloc[6], c(theta_uas["U_minus"], theta_gs * fu * (1 - pu)))
     theta_uas_add["U_minus"] <- tmp[1]
-    theta_gs_add_no_no_read <- tmp[-1]
+    theta_gs_add_no_no_tag <- tmp[-1]
     
+    # and now we also have to be VERY careful to add the observed ad_clipped fish with no_tag to
+    # the pile of fish we are allocating to individual tag_codes.
+    tmp <- rmultinom(1, unlist(adc_cwt[5,"n"]), c(theta_uas["U_plus"], theta_gs * fm * (1 - pm)))
+    theta_uas_add["U_plus"] <- tmp[1]
+    theta_gs_obs_yes_no_tag <- tmp[-1] 
     
     #### Now that those guys are all allocated, we just need to simulate new values of theta_gs and 
     #### theta_uas from their Dirichlet full conditionals.  We will assume simple unit-information priors
@@ -296,8 +302,9 @@ cwt_ppn_estimation_function <- function(s, reps = 10000, thin = 10,
                                     theta_g_obs_n +
                                     theta_gs_add_yes_cwt +
                                     theta_gs_add_no_cwt +
-                                    theta_gs_add_yes_no_read + 
-                                    theta_gs_add_no_no_read)
+                                    theta_gs_add_yes_no_tag + 
+                                    theta_gs_add_no_no_tag +
+                                    theta_gs_obs_yes_no_tag)
     
     theta_uas_dirichlet_pars <- c( 1/length(theta_uas) +
                                      theta_uas_n_obs +
