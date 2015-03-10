@@ -50,12 +50,46 @@ squash_data_for_estimation <- function(r, cs, fp, rg) {
 }
 
 
+#' compute an "expected visual-detection fishery sample" given the current parameter values
+#' 
+#' You can change the mark and tag rates for the stocks and see the effects of that, too.
+#' @param n  The number of fish to visually sample for adclips
+#' @param theta_gs  The mixing proportions of different tag groups
+#' @param theta_uas the four other parameters
+#' @param mark_and_tag dataframe with (at least) the columns f_marked, f_unmarked, p_marked, p_unmarked
+viz_expect_predict <- function(n, theta_gs, theta_uas, mark_and_tag) {
+  
+  n <- unlist(n)  # make sure it is not part of a table any longer.
+  
+  # make short variables
+  fm <- mark_and_tag$f_marked
+  fu <- mark_and_tag$f_unmarked
+  pm <- mark_and_tag$p_marked
+  pu <- mark_and_tag$p_unmarked
+  
+  # This is the expected fraction of fish with adclips
+  ad_fract <- sum(theta_gs * fm) + sum(theta_uas[c("U_plus", "A_plus")])
+  ad_count <- ad_fract * n  # the expected number of fish with adclips
+  
+  cwt_fract <- sum(theta_gs * fm * pm) / ad_fract   # fraction of ad-clipped fish bearing cwts
+  cwt_count <- ad_count * cwt_fract  # expected number of ad-clipped fish carrying cwts
+  
+  tag_group_counts <- cwt_count * theta_gs * fm * pm  # expecte number of cwts from each tag_group
+  
+  list(viz_samp_size = n,
+       ad_fract = ad_fract,
+       ad_count = ad_count,
+       cwt_fract = cwt_fract,
+       cwt_count = cwt_count,
+       tag_group_counts = tag_group_counts)
+                                        
+}
 
 # this is here to set values while developing the function below
 if(FALSE) {
-  r <- rec2012
-  cs <- cs2
-  fp <- mark_and_tag_rates
+  r <- dat$recovery
+  cs <- dat$catch_sample
+  fp <- dat$mark_and_tag_rate
   #  rg <- "06-BC  (4480)"
   #  rg <- "16-CA  (4183)"
   rg <- "01-AK-NW  (2111), 02-AK-NW  (1194)"
@@ -122,6 +156,7 @@ cwt_ppn_estimation_function <- function(s, reps = 10000, thin = 10,
     s$catch_sample[s$catch_sample$detection_method == "V", "mr_1st_sample_known_ad_status"] - 
     s$catch_sample[s$catch_sample$detection_method == "V", "mr_1st_sample_obs_adclips"]
   
+   
   ## and this is the general shape of the values that we can compute probabilities for
   adc_cwt <- recov_sums %>% filter(ad_clipped != "unknown", cwt_status != "unknown", cwt_status != "no_read")  # I have to deal with the no_read category somehow later...
   
@@ -138,7 +173,7 @@ cwt_ppn_estimation_function <- function(s, reps = 10000, thin = 10,
   
   # and here, after that we can compute for later use the total number of fish sampled (that is all those
   # that were checked for an ad-clip in visual fisheries.) We will use this later for predictive checks
-  tot_fish_with_known_ad_status <- unlist(s$catch_sample[s$catch_sample$detection_method == "V", "mr_1st_sample_known_ad_status"])
+  tot_fish_with_known_ad_status <- unname(unlist(s$catch_sample[s$catch_sample$detection_method == "V", "mr_1st_sample_known_ad_status"]))
   
   ## Now, here we will initialize the theta_gs to something silly---just set it to the observed proportion, plus a little bit of prior...
   ## I am just doing this while developing...
@@ -189,8 +224,9 @@ cwt_ppn_estimation_function <- function(s, reps = 10000, thin = 10,
   ret$theta_gs <- vector("list", ceiling(reps / thin)) 
   ret$theta_uas <- vector("list", ceiling(reps / thin))
   ret$predictive_viscounts <- vector("list", ceiling(reps / thin))
+  ret$viz_expect_predict <- vector("list", ceiling(reps / thin))
   
-  # an put the starting values in there:
+  # and put the starting values in there:
   ret$theta_gs[[1]] <- theta_gs
   ret$theta_uas[[1]] <- theta_uas
   
@@ -283,6 +319,10 @@ cwt_ppn_estimation_function <- function(s, reps = 10000, thin = 10,
       ret$theta_gs[[store_idx]] <- theta_gs
       ret$theta_uas[[store_idx]] <- theta_uas
       ret$pred_table[[store_idx]] <- predictive_table
+      ret$viz_expect_predict[[store_idx]] <- viz_expect_predict(tot_fish_with_known_ad_status, 
+                                                                theta_gs,
+                                                                theta_uas,
+                                                                s$mark_and_tag)
     }
     
   }

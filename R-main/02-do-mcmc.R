@@ -37,13 +37,14 @@ names(viz_fisheries) <- viz_fisheries
 
 
 # do each of them for a short run
-results <- mclapply(viz_fisheries, function(x) { 
+viz_results <- mclapply(viz_fisheries, function(x) { 
   s <- squash_data_for_estimation(r = dat$recovery,
                                   cs = dat$catch_sample,
                                   fp = dat$mark_and_tag_rate,
                                   rg = x)
-  cwt_ppn_estimation_function(s, 10000, 10, no_ad_tag_ceiling = -0.05, 
+  ret <- cwt_ppn_estimation_function(s, 1000, 1, no_ad_tag_ceiling = 0.05, 
                               unclipped_awts_to_U_minus = TRUE)
+  ret
   },
   mc.cores = 8)
 
@@ -55,11 +56,73 @@ extract_mcmc_uas <- function(x, thin = 1) {
    cbind(iteration = seq(from = thin, by = thin, length.out = nrow(y)), y)
 }
 
+mean_mcmc_expect_pred <- function(x) {
+  list(counts = colMeans(do.call(rbind, lapply(x$viz_expect_predict[-1], function(y) sapply(y[1:5], mean)))),
+       tag_groups = colMeans(do.call(rbind, lapply(x$viz_expect_predict[-1], function(y) y$tag_group_counts)))
+  )
+}
 
+plot_uas_traces <- function(results, facet_cols = 2) {
+  tmp <-ldply(lapply(results, function(x) {extract_mcmc_uas(x, thin = 1)}), data.frame)
+  viz_uas <- melt(tmp, id.vars = c(".id", "iteration"), variable.name = "parameter")
+  ggplot(viz_uas, aes_string(x = "iteration", y = "value", colour = "parameter")) + 
+    geom_line() +
+    facet_wrap(~ .id, ncol = facet_cols)
+}
 
 #### Plot some traces with ggplot
-tmp <-ldply(lapply(results, function(x) {extract_mcmc_uas(x, thin = 1)}), data.frame)
-viz_uas <- melt(tmp, id.vars = c(".id", "iteration"), variable.name = "parameter")
-ggplot(viz_uas, aes(x = iteration, y = value, colour = parameter)) + 
-  geom_line() +
-  facet_wrap(~ .id, ncol = 2)
+plot_uas_traces(viz_results)
+
+
+#### make scatterplots of observed cwt counts versus the mean predictive ones from the mcmc simulation
+# first get the predicted quantities
+tmp <- lapply(lapply(viz_results, mean_mcmc_expect_pred), function(y) 
+  data.frame(tag_code = names(y$tag_groups), pred_counts = y$tag_groups, stringsAsFactors = FALSE))
+tmp2 <- tbl_df(ldply(tmp, data.frame))
+names(tmp2)[1] <- "recovery_group"
+
+# then get the actual counts
+tmp3 <- dat$recovery %>% 
+  group_by(recovery_group, tag_code) %>%
+  tally()
+names(tmp3)[3] <- "obs_counts"
+
+# left join them, and then set things to zero if they are NA in obs_counts
+compare_counts <- left_join(tmp2, tmp3)
+compare_counts$obs_counts[is.na(compare_counts$obs_counts)] <- 0
+
+# now, also join in the marking and tagging fractions
+compare_counts2 <- compare_counts %>% 
+  inner_join(dat$mark_and_tag_rate)
+
+ggplot(compare_counts2, aes(x = obs_counts, y = pred_counts, colour = f_marked)) +
+  geom_point() + 
+  geom_abline(intercept = 0, slope = 1, colour = "grey50", size = 0.3) +
+  facet_wrap(~ recovery_group, ncol = 2, scales = "free")
+
+# here is the money shot!  The ones that are off the line are ones that
+# apparently have no tags in the ad-clipped segment of the population.  So,
+# clearly that is fishy...I'll have to figure out what is going on there.
+ggplot(compare_counts2, aes(x = obs_counts, y = pred_counts, colour = p_marked)) +
+  geom_point() + 
+  geom_abline(intercept = 0, slope = 1, colour = "grey50", size = 0.3) +
+  facet_wrap(~ recovery_group, ncol = 2, scales = "free")
+
+
+# now, have a look at actual and predicted number of ad-clipped fish
+tmp <- lapply(lapply(viz_results, mean_mcmc_expect_pred), function(y) {
+  mat <- matrix(y$counts, nrow=1, byrow = T)
+  colnames(mat) <- names(y$counts)
+  as.data.frame(mat)
+})
+
+# here are the predicted quantities
+pred_counts <- ldply(tmp, data.frame)
+
+# here are the actual ones
+dat$recovery %>% 
+  filter(ad_clipped == "yes", cwt_status == "cwt") %>%
+  group_by(recovery_group, cwt_status) %>%
+  tally()
+
+# gotta pick this up tomorrow.
