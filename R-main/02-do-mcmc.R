@@ -3,7 +3,6 @@
 #### Load libraries, source files, load the data  ####
 library(ggplot2)
 library(lubridate)
-library(plyr)
 library(dplyr)
 library(reshape2)
 library(stringr)
@@ -63,7 +62,7 @@ mean_mcmc_expect_pred <- function(x) {
 }
 
 plot_uas_traces <- function(results, facet_cols = 2) {
-  tmp <-ldply(lapply(results, function(x) {extract_mcmc_uas(x, thin = 1)}), data.frame)
+  tmp <- plyr::ldply(lapply(results, function(x) {extract_mcmc_uas(x, thin = 1)}), data.frame)
   viz_uas <- melt(tmp, id.vars = c(".id", "iteration"), variable.name = "parameter")
   ggplot(viz_uas, aes_string(x = "iteration", y = "value", colour = "parameter")) + 
     geom_line() +
@@ -78,7 +77,7 @@ plot_uas_traces(viz_results)
 # first get the predicted quantities
 tmp <- lapply(lapply(viz_results, mean_mcmc_expect_pred), function(y) 
   data.frame(tag_code = names(y$tag_groups), pred_counts = y$tag_groups, stringsAsFactors = FALSE))
-tmp2 <- tbl_df(ldply(tmp, data.frame))
+tmp2 <- tbl_df(plyr::ldply(tmp, data.frame))
 names(tmp2)[1] <- "recovery_group"
 
 # then get the actual counts
@@ -95,17 +94,23 @@ compare_counts$obs_counts[is.na(compare_counts$obs_counts)] <- 0
 compare_counts2 <- compare_counts %>% 
   inner_join(dat$mark_and_tag_rate)
 
-ggplot(compare_counts2, aes(x = obs_counts, y = pred_counts, colour = f_marked)) +
+# here we color it by number of fish released
+ggplot(compare_counts2, aes(x = obs_counts, y = pred_counts, colour = log10(n_marked))) +
   geom_point() + 
   geom_abline(intercept = 0, slope = 1, colour = "grey50", size = 0.3) +
+  scale_colour_gradientn(colours = rev(rainbow(7))) +
   facet_wrap(~ recovery_group, ncol = 2, scales = "free")
 
 # here is the money shot!  The ones that are off the line are ones that
 # apparently have no tags in the ad-clipped segment of the population.  So,
 # clearly that is fishy...I'll have to figure out what is going on there.
+# Aha! Those are mass-marked stocks whose proportions aren't being estimated correctly,
+# which explains why the number of non-tagged ad-clipped fish is underestimated in those
+# fisheries, too.
 ggplot(compare_counts2, aes(x = obs_counts, y = pred_counts, colour = p_marked)) +
   geom_point() + 
   geom_abline(intercept = 0, slope = 1, colour = "grey50", size = 0.3) +
+  scale_colour_gradientn(colours = rev(rainbow(7))) +
   facet_wrap(~ recovery_group, ncol = 2, scales = "free")
 
 
@@ -117,12 +122,23 @@ tmp <- lapply(lapply(viz_results, mean_mcmc_expect_pred), function(y) {
 })
 
 # here are the predicted quantities
-pred_counts <- ldply(tmp, data.frame)
+pred_counts <- plyr::ldply(tmp, data.frame)
+names(pred_counts)[c(1, 4, 6)] <- c("recovery_group", "pred_ad_count", "pred_cwt_count")
 
-# here are the actual ones
-dat$recovery %>% 
+# here are the actual numbers of ad_clipped fish with cwts ones
+tmp2 <- dat$recovery %>% 
   filter(ad_clipped == "yes", cwt_status == "cwt") %>%
   group_by(recovery_group, cwt_status) %>%
-  tally()
+  summarise(actual_ad_clipped_cwt_fish = n())
 
-# gotta pick this up tomorrow.
+# here are the total numbers of ad_clipped fish (whether or not they have cwts)
+tmp3 <- dat$recovery %>% 
+  filter(ad_clipped == "yes") %>%
+  group_by(recovery_group) %>%
+  summarise(actual_all_ad_clipped_fish = n())
+
+# and here we put them all together into a table
+pred_counts %>%
+  inner_join(tmp2) %>%
+  inner_join(tmp3) %>%
+  select(recovery_group, viz_samp_size, actual_all_ad_clipped_fish, pred_ad_count, actual_ad_clipped_cwt_fish, pred_cwt_count)

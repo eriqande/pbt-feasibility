@@ -74,7 +74,7 @@ viz_expect_predict <- function(n, theta_gs, theta_uas, mark_and_tag) {
   cwt_fract <- sum(theta_gs * fm * pm) / ad_fract   # fraction of ad-clipped fish bearing cwts
   cwt_count <- ad_count * cwt_fract  # expected number of ad-clipped fish carrying cwts
   
-  tag_group_counts <- cwt_count * theta_gs * fm * pm  # expecte number of cwts from each tag_group
+  tag_group_counts <- cwt_count * (theta_gs * fm * pm) / sum(theta_gs * fm * pm)  # expecte number of cwts from each tag_group
   
   list(viz_samp_size = n,
        ad_fract = ad_fract,
