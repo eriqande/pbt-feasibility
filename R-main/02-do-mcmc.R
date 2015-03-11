@@ -61,6 +61,12 @@ mean_mcmc_theta_gs <- function(x, toss_for_burn_in = 100) {
   tbl_df(data.frame(tag_code = names(tmp), post_mean_theta_gs = tmp))
 }
 
+# here is one to extract the credible intervals
+cred_int_mcmc_theta_gs <- function(x, quants = c(.05, 0.95), toss_for_burn_in = 100) {
+  tmp <- do.call(cbind, x$theta_gs[-(1:toss_for_burn_in)]) # get a matrix of results, each iteration in one column
+  tmp2 <- apply(tmp, 1, quantile, probs = quants) # get the quantiles
+  tbl_df(data.frame(tag_code = colnames(tmp2), CI_lo = tmp2[1,], CI_hi = tmp2[2,]))
+}
 
 mean_mcmc_expect_pred <- function(x) {
   list(counts = colMeans(do.call(rbind, lapply(x$viz_expect_predict[-1], function(y) sapply(y[1:5], mean)))),
@@ -78,6 +84,7 @@ plot_uas_traces <- function(results, facet_cols = 2) {
 
 #### Plot some traces with ggplot
 plot_uas_traces(viz_results)
+ggsave("uas_traces.pdf", width = 14, height = 10)
 
 
 #### make scatterplots of observed cwt counts versus the mean predictive ones from the mcmc simulation
@@ -188,4 +195,14 @@ ggplot(compare_counts_to_theta, aes(x = post_mean_theta_gs, y = obs_counts, colo
   facet_wrap(~ recovery_group, ncol = 2, scales = "free")
 ggsave("post_mean_theta_v_counts_release_state.pdf", width = 14, height = 8)
 
-  
+# then do one coloured by the fraction of all the fish that are ad_clipped and tagged   
+ggplot(compare_counts_to_theta, aes(x = post_mean_theta_gs, y = obs_counts, colour = f_marked * p_marked)) + 
+  geom_point(size = 1.0) + 
+  scale_colour_gradientn(colours = rev(rainbow(7))) +
+  facet_wrap(~ recovery_group, ncol = 2, scales = "free")
+ggsave("post_mean_theta_v_counts_f_marked_times_p_marked.pdf", width = 14, height = 8)
+
+
+
+#### It might be interesting to add Bayesian credible intervals to the proportion estimates ####
+cred_ints <- lapply(viz_results, cred_int_mcmc_theta_gs)

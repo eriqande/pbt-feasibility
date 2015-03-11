@@ -352,7 +352,7 @@ rec13 <- rec12 %>%
 # now plot it with separators for the different recovery groups
 frame_for_vline <- data.frame(state_or_province = rep(states_tmp[-c(4,7)], times = c(6, 2, 5, 1, 5)), fishery_breaks)
 g + geom_vline(data = frame_for_vline[-1, ], mapping = aes(xintercept = fishery_breaks + 0.5))
-ggsave(file = "recovery_trees_divided.pdf", width = 17, height = 22)
+ggsave(file = "recovery_trees_divided.pdf", width = 14, height = 10)
 
 
 
@@ -460,11 +460,11 @@ rectmp <- rec2012a
 rectmp$release_location_state <- factor(rectmp$release_location_state, levels = c("AK", "BC", "WA", "ID", "OR", "CA"))
 tmp <- rectmp %>% filter(recovery_group < "10")
 recovery_histo_plot(tmp)
-ggsave(file = "recovery_histo_panel_1.pdf", width = 8.5, height = 11)
+ggsave(file = "recovery_histo_panel_1.pdf", width = 14, height = 10)
 
 tmp <- rectmp %>% filter(recovery_group >= "10")
 recovery_histo_plot(tmp)
-ggsave(file = "recovery_histo_panel_2.pdf", width = 8.5, height = 11)
+ggsave(file = "recovery_histo_panel_2.pdf", width = 14, height = 10)
 
 
 
@@ -511,7 +511,7 @@ ggplot(tmp, aes(x = n_total_fish,
   scale_x_log10() +
   facet_wrap( ~ mark_fract)
 
-ggsave("ppn_marked_that_have_tags_panels.pdf", width = 10, height = 8)
+ggsave("ppn_marked_that_have_tags_panels.pdf", width = 14, height = 10)
 
 
 #### SUMMARIZE THE CATCH/SAMPLE DATA TO PREP FOR MCMC ####
@@ -684,4 +684,37 @@ saveRDS(list(recovery = rec2012,
         file = "data_for_mcmc.rds")
 
 
+
+#### Explore the occurrence of unassociated and unassociated releaseses in CA #####
+# this is just some fiddling I did after lab meeting.
+
+rel_explore <- releases  %>%
+  mutate(n_total_fish = n_tag_ad + n_tag_noad + n_notag_ad + n_notag_noad,
+         n_marked = n_tag_ad + n_notag_ad,
+         n_unmarked = n_tag_noad + n_notag_noad,
+         f_marked = n_marked / n_total_fish,
+         f_unmarked = n_unmarked / n_total_fish,
+         p_marked = ifelse(n_marked > 0, n_tag_ad / n_marked, 0),
+         p_unmarked = ifelse(n_unmarked > 0, n_tag_noad / n_unmarked, 0),
+         f_marked_category = cut(f_marked, breaks = c(-.001, seq(0,1, by = .1)))
+  ) %>% select(tag_code_or_release_id, brood_year, release_location_state, tag_variety, f_marked_category, n_total_fish, f_marked, p_marked)
+
+
+# If I look at all the releases from Calfornia that have at least one individual recovered coastwide in 2012
+# and count up the total number of fish released
+mark_and_tag_rates %>%
+  filter(release_location_state == "CA") %>% 
+#  group_by(cut(f_marked, breaks = seq(0,1, by = 0.1))) %>% 
+  summarise(tot_marked_released = sum(n_marked))
+
+rel_explore %>%
+  filter(release_location_state == "CA", brood_year %in% 2008:2010, tag_variety == "cwt") %>%
+#  group_by(release_location_state, brood_year, tag_variety, f_marked_category) %>%
+  summarise(total_marked_released = sum(n_total_fish * f_marked))
+  
+
+releases %>%
+  filter(release_location_state == "CA") %>%
+  group_by(release_location_rmis_basin) %>% 
+  tally()
 
