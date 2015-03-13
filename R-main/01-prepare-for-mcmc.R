@@ -438,7 +438,9 @@ recovery_histo_plot <- function(df, colorby =  "release_location_state") {
     theme_bw() + theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank()) +
     geom_segment(aes_string(x = "tag_code_x_value", xend = "tag_code_x_value", y = 0, yend = "num_tag_recovs_in_group", colour = colorby),
                  size = 0.1) +
-    scale_colour_discrete(drop = FALSE)
+    scale_colour_discrete(drop = FALSE) +
+    xlab("Tag code") + 
+    ylab("Number of CWTs recovered")
 }  
 
 # then make the plot

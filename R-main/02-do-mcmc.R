@@ -192,15 +192,18 @@ ggsave("post_mean_theta_v_counts_p_marked.pdf", width = 14, height = 8)
 
 
 ggplot(compare_counts_to_theta, aes(x = post_mean_theta_gs, y = obs_counts, colour = release_location_state)) + 
-  geom_point() + 
-  facet_wrap(~ recovery_group, ncol = 2, scales = "free")
+  geom_point(size = 1.6) + 
+  facet_wrap(~ recovery_group, ncol = 2, scales = "free") +
+  scale_colour_discrete(name = "Release state") 
 ggsave("post_mean_theta_v_counts_release_state.pdf", width = 14, height = 8)
 
 # then do one coloured by the fraction of all the fish that are ad_clipped and tagged   
 ggplot(compare_counts_to_theta, aes(x = post_mean_theta_gs, y = obs_counts, colour = f_marked * p_marked)) + 
-  geom_point(size = 1.0) + 
-  scale_colour_gradientn(colours = rev(rainbow(7))) +
-  facet_wrap(~ recovery_group, ncol = 2, scales = "free")
+  geom_point(size = 1.6) + 
+  scale_colour_gradientn(name = "Ppn tagged and marked", colours = rev(rainbow(7))) +
+  facet_wrap(~ recovery_group, ncol = 2, scales = "free") +
+  ylab("Observed number of CWTs recovered") + 
+  xlab("Posterior mean theta_g")
 ggsave("post_mean_theta_v_counts_f_marked_times_p_marked.pdf", width = 14, height = 8)
 
 
@@ -215,7 +218,14 @@ cred_ints <- lapply(viz_results, cred_int_mcmc_theta_gs)
 #### We will use the GGally library
 
 # first I need to cast the thetas into a multi-column data frame grouped by tag_code and recovery_group 
-A <- compare_counts_to_theta %>% 
+# AND (this is important) if the count is zero in a recovery group, I will set the 
+# estimated theta_g for that release group to NA, so we don't compare stocks that are not seen
+# in one of the recovery groups.
+tmp <- compare_counts_to_theta
+tmp$post_mean_theta_gs[tmp$obs_counts == 0] <- NA
+#tmp$post_mean_theta_gs[tmp$post_mean_theta_gs > 0.01] <- NA  # zap the few overly-large ones...
+
+A <- tmp %>% 
   select(tag_code, recovery_group, post_mean_theta_gs) %>%
   mutate(recov_group = str_extract(recovery_group, "^([0-9][0-9])-([A-Z][A-Z])") 
          %>% str_replace("-", "_") %>% paste("f", ., sep = "")
@@ -231,4 +241,9 @@ B <- compare_counts_to_theta %>%
 
 
 # now we can run ggpairs.  Gotta fiddle with the size and colors of dots still.
-pm <- ggpairs(B, columns = 5:ncol(B))
+pm <- ggpairs(B, columns = 5:ncol(B),
+              color = "release_location_state",
+              alpha = 0.6)
+pdf("theta_g_matrix.pdf", width = 28, height = 20)
+print(pm)
+dev.off()

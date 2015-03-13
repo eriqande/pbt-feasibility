@@ -2,6 +2,7 @@
 \usepackage{graphicx}
 \usepackage{amssymb}
 \usepackage{epstopdf}
+\usepackage{rotating}
 \usepackage{amsfonts}
 \usepackage{natbib}
 \usepackage{subfigure}
@@ -9,6 +10,7 @@
 \usepackage{xspace}
 \usepackage{color}
 \usepackage{url}
+\usepackage{nameref}
 %\usepackage[pdftex, colorlinks=true,urlcolor=blue]{hyperref}
 %\usepackage{wallpaper}
 
@@ -54,9 +56,9 @@
 \parindent = 0.0in
 
 
-\title{A simulation framework to compare \\
-the information gained from \\
-PBT relative to CWTs}
+\title{Assessing the potential for PBT to deliver \\
+estimates currently obtained using CWTs: \\
+a data-driven, large scale assessment}
 \author{Eric C. Anderson\thanks{
     Fisheries Ecology Division, 
     Southwest Fisheries Science Center, 
@@ -67,99 +69,73 @@ PBT relative to CWTs}
 
 \maketitle
 
-\begin{abstract}
-\noindent I am taking the lead on this aspect of the project:
+\tableofcontents
+
+\section{Introduction}
+Here, we seek to address this information need:
 \begin{quote}
 {\sl Assessment of the degree to which this system could or could not deliver estimates of the key life history and fishery parameters that are currently delivered from the CWT program and do so with similar or better accuracy (i.e., consider errors of estimation). Identify areas or issues where implementation of PBT on a coast-wide basis seems most problematic. }
 \end{quote}
-I realized that I wouldn't feel comfortable recommending (or not recommending) PBT until I had made
-a solid effort to get a handle on how PBT's effectiveness is affected by mass-marking and the move to
-electronic detection in fisheries.  The simulations I am developing, described herein, are part of
-my effort to do so in a meaningful and transparent fashion.  I would appreciate any feedback from the
-committee.
-\end{abstract}
 
-% \tableofcontents
+There are two main variables that influence the accuracy of different estimates of life-history and 
+fishery parameters obtained from CWT or PBT data: 1) the number of tags (CWT-based or PBT-based) that 
+are actually recovered, and 2) the accuracy with which those tags can be expanded to meaningful estimates
+of the expanded number of recoveries.  The main factor driving (2) is the accuracy with
+which the tagging rate is known.  We deal with (2) in a separate document, ``Variation in
+Parentage-Based Tagging and Coded-Wire  Tagging  Rates.''  In this document, we treat issue (1), assessing
+the degree to which increasing tagging rates by using  PBT can improve
+tag-recovery rates.  
 
-\section{Introduction}
+Because tagging a higher fraction of any stock can be done cheaply with PBT, it is tempting to
+think that increasing tagging rates using PBT will invariably lead to higher recovery rates
+for all the release groups.  This is, however, untrue: it is necessary to mark (ad-clip) PBT-tagged
+fish in order to recover them, and indiscriminately increasing the mark rate on numerous stocks
+will almost certainly reduce the fraction of marked fish (in mixed fisheries) that originate from
+certain weak or underrepresented stocks, decreasing the recovery rate for those stocks.  Therefore, 
+increasing tag rates through PBT must be done in a more nuanced and selective fashion.  
 
-To detemine whether PBT can economically 
-deliver comparable information (or more information) than what is currently achieved with CWTs,
-I propose a simulation of
-mixed fisheries upon the entire coast.  By changing the parameters of the
-simulation we can investigate release-group-specific recovery rates
-under a variety of PBT tagging rates, marking protocols, and sampling scenarios, and compare these
-to the rate of CWT recoveries achieved under the current CWT system.
-The simulations, of course, are driven by real data, and incorporate the effects of mass-marking and the use
-(or not) of electronic detection.
+The degree to which selective increases in tagging rates can improve recovery rates for many 
+stocks depends on a number of factors.  For example, recovery rates for a weak stock cannot be 
+easily increased if that stock is already tagged at 100\%.  Furthermore,
+the effect upon any particular fishery of increasing the tagging rates on a group of stocks depends
+fundamentally upon the relative composition of those stocks in the fishery.  And, of course,
+tag-rate increases that improve recoveries of a release group that is rare in one fishery might,
+if that stock is common in a second fishery, have the effect of reducing recovery rates of other
+stocks in that second fishery.  On top of that, the effect of increasing tag rates on a fishery will
+depend on other features of the fishery, for example, whether it is visually or electronically sampled.
+Therefore, the potential for PBT to deliver improved estimates of fishery parameters on a coastwide scale
+can only be answered by taking account of the stock composition of those fisheries and the sampling
+schemes employed in them.  
 
-This document has four parts (only the first two are near completion this point).
-In the first, I discuss the overall idea and character of the simulations
-and detail some of the assumptions made in order to render them both meaningful and manageable.  
-Performing this type of simulation
-requires parameterization with realistic values of the  relative frequency of fish from each release group
-in numerous fisheries as well as the fraction of mass-marked fish from unassociated releases, and 
-of unmarked fish from wild populations or unassociated releases. Thus, in the second section I document
-a Bayesian method developed to use CWT data from the RMIS data base to estimate proportions of fish from
-different release groups in different fishery strata.  The third section shows the results of applying this
-estimation method to CWT data in a small number of recent years, and the fourth section describes the results
-of the simulations and details the comparative performance of PBT vs. CWTs.
-
-
-\section{Simulation Rationale and Overview}
-
-The relative utility of PBT versus CWTs depends on a large
-number of factors which differ between release groups, fisheries, locations and sampling methods.
-There are some scenarios where the ability to inexpensively tag 100\% of every release group via PBT
-will clearly be advantageous. But there are other scenarios in which CWTs might have the advantage, for example,
-cases where electronic detection of fish carrying CWTs
-might allow CWT recoveries to be selectively enriched for weak stocks of interest.  In order to assess the relative merits of PBT versus CWTs at a coastwide
-scale, it is my belief that a careful accounting of the information obtained from PBT versus
-CWT for each release group across the entire coast is necessary.  This seems, at first, to be  monumental
-task, but the data for doing this exist in the data bases of the RMIS---there is a rich history of
-CWT releases and subsequent catch-sampling and CWT recoveries that can be used to parameterize simulations
-in which one can vary PBT and CWT tagging rates and monitor the observed number of recoveries.
+Here, we divide the marine fisheries in the year 2012 for Chinook salmon along
+the Pacific Coast of North America into
+18 regions and estimate the composition of fish recovered from those regions by applying a novel
+Bayesian estimation model to data from the Regional Mark Information System (RMIS) data base.  After
+confirming that the model fits the data well, we use the estimated composition of release groups
+in each region to explore how expected recovery rates change under different scenarios of modifying the 
+tagging and marking rates of PBT.  The expected recovery rates of PBT-tagged fish can be easily compared
+to the expected recovery rates of CWTs given current tagging and marking rates, which provides a principled
+way of assessing the degree to which a PBT program might be able to yield more recoveries, 
+and hence more accurate estimates, from multiple release groups across the whole coast.   
 
 
-
-The utility of PBT data versus CWT data for any particular release group in any 
-particular fishery stratum subject to sampling by any particular protocol (electronic detection, or 
-visual, etc.) can be measured by the number of fish from that release group sampled and
-recovered from the fishery.  The number of tag recoveries for each release group is thus what
-will be our ``currency'' with which we compare the efficacy (and when divided by cost, the cost-effectiveness)
-of PBT versus CWTs\footnote{If the uncertainty in the estimated PBT tagging rate was much higher than the
-uncertainty in tag rate for any particular release group, then the number of PBT recoveries versus the number of CWT recoveries
-would not provide a direct comparison.  However, in previous work, which I can put in an appendix, I've shown
-that variance in PBT tagging rates are not a large factor---especially when a large fraction of the fish are
-tagged by PBT}.  Certainly, if it were possible to design a PBT system that provided more recoveries
-in all fisheries of every release group at the same or less cost than the CWT system, it would be
-hard to argue against it.  Of course, the comparison between PBT and CWTs is likely to be
-more nuanced and variable across release groups and recovery locations.  For example, PBT may be better
-for monitoring some release groups in some fisheries and CWTs better in others. The question I wish to address is,
-``Specifically, {\em where} will PBT be better and where will CWTs be better?" and, of course, in the end,
-``Averaged over all the locations and release groups along the coast, does any one method appear
-better and more cost-effective?''  
+The remainder of this document is divided into five main sections.  In {\sc \nameref{sec:prelims}},
+we summarize and make explicit some of the assumptions and operating perspectives we have adopted
+in this work.  {\sc \nameref{sec:bayes}} gives details of the model used to estimate
+proportions of different release groups in fisheries.  {\sc \nameref{sec:agg}} describes how we divided
+Chinook fisheries in 2012 into a few large recovery areas and summarizes the number of CWTs from
+each release group recovered in those fisheries. In {\sc \nameref{sec:estimation}} we apply the
+Bayesian model to each large recovery area and present the estimates, as well as the posterior
+predictive checks which verify that the model fits the data.  Finally, in
+{\sc\nameref{sec:compare}}, we discuss different schemes for setting tagging rates at
+PBT hatcheries and then compare expected recovery rates under those schemes to the recovery
+rates expected from using current CWT tagging rates.  
 
 
-These questions could be answered quite directly for every catch sample if the composition of the
-fishery from which that catch sample was to be taken was known.  If we knew the percentage of each
-release group in the fishery, then we could compute the fraction of the fishery that were ad-clipped
-(using the mark rates for each release group) and the fraction that were carrying CWTs (from the
-tag rates for each release group), which would allow us to easily simulate CWT recoveries under
-visual or electronic sampling.  By varying the tag rates to reflect what would be achieved with
-PBT, and by varying how sampling would proceed (for instance by assuming that electronic sampling was not 
-available because PBT-tagged fish were not carrying any wire), it would be
-relatively straightforward to simulate PBT recoveries in the same fishery, giving us an objective basis upon which
-to compare the two systems.  
-
-Unfortunately, the composition of every fishery is not known.  Instead of knowing the truth
-and using it, we will have to use existing CWT data to obtain reasonable estimates of
-fishery composition, and then use those to drive our simulations. Section~\ref{sec:estimation} describes a Bayesian method for
-estimating those compositions from CWT data, providing samples of the mixed fishery proportions
-from their posterior distribution which can then be used in the simulations.  
 
 
-\subsection{Some assumptions / qualifying statements}
+
+\section{Preliminaries and Assumptions \label{sec:prelims}}
 
 In order to make this undertaking manageable, while still yielding useful information, I make
 a few assumptions, listed below:
@@ -195,21 +171,36 @@ escapement, \etc}
 \end{enumerate}
 
 
-\section{Bayesian Estimation of Release Group Proportions \label{sec:estimation}}
+\section{Bayesian Estimation of Release Group Proportions \label{sec:bayes}}
 
-To parameterize our simulations, we require what we will call $\theta_g$,
+We propose a simple model to estimate the composition of fish from different release groups
+from CWT recovery data.  We then specify a Gibbs sampler to sample from the posterior
+distribution of the parameters in the model.
+
+\subsection{Parameters}
+
+Let $\theta_g$ be
 the probability that a fish sampled 
-from the ocean within a given fishery stratum (the dependence on a given stratum is implied to avoid an
-overproliferation of subscripts) is from release group $g$. Note that this might not reflect the
-true composition of fish in the ocean because of length restrictions on the catch, \etc  This should
-be all right---what we are after is a probability that a fish from a certain release group will
-be caught and retained in the fishery, and that is what $\theta_g$ reflects.
-For our purposes here, a release group is defined as
-a tag code. $\theta_g$ refers not just to the fraction of fish from release group $g$ that
+from the ocean within a given recovery area  is from release group $g$, $g = 1,\ldots, G$,
+where $G$ is the total number of distinct tag codes with at least one recovery, coastwide,
+during the year.  Denote all of those probabilities by $\btheta = (\theta_1, \ldots, \theta_G)$.
+We don't specifically denote the recovery area in order to avoid an
+overproliferation of subscripts, but remind the reader that recovery $\theta_g$ is defined in
+reference to a particular recovery area. Note that $\btheta$ might not reflect the
+true composition of fish in the recovery area because of length restrictions on the catch, \etc  We contend
+that this is not a great concern because, for our purpose, what we wish to estimate is the
+probability that a fish from a certain release group will
+be caught and retained in the fishery, and that is what precisely what $\theta_g$ reflects.
+
+
+We define each release group, $g$, to corresond explicitly to a tag code; however, it is important
+to understand that $\theta_g$ refers not just to the fraction of fish from release group $g$ that
 have CWTs, but {\em all} of the fish in the release group $g$, whether they have
-a CWT or not. We
+a CWT or not. As stated above, 
 will think of tag codes, $g$, as being indexed from 1 up to $G$ for the $G$ possible tag codes
-that could turn up in a fishery in the given year. 
+that were actually observed in some marine fishery along the coast during the given year. 
+
+
 We include several other categories:
 \begin{description}
 \item{$A+$ and $A-$:}~~Fish from non-associated release groups that carry agency only or blank wire.  These fish cannot be identified to release group but they do all carry wire. The $+$ and the $-$ refer to whether or
@@ -371,15 +362,57 @@ and given it does not have an ad-clip is:
 \etc
 
 
+\section{Aggregation and Characterization of 2012 Fisheries \label{sec:agg}}
+
+\begin{sidewaysfigure}
+\begin{center}
+\includegraphics[width=\textwidth]{images/recovery_trees_divided.pdf}
+\end{center}
+\caption{Visual depiction of the hierarchical clustering of fishery recovery areas (and numbers of CWTs recovered)
+in 2012.}
+\end{sidewaysfigure}
 
 
-\section{Estimation of $\btheta$ in fisheries along the coast}
-This is not complete.  I am using R to conduct all of the calculations.  As a geneticist that is coming relatively
-recently to the world of CWTs, I've been taking some time to familiarize myself with the RMIS.  All this work
-is being done in the open, and can be seen at: \url{https://github.com/eriqande/pbt-feasibility}
+\begin{sidewaysfigure}
+\begin{center}
+\includegraphics[width=\textwidth]{images/recovery_histo_panel_1.pdf}
+\end{center}
+\caption{The number of CWT recoveries from 1435 Chinook tag codes across different recovery areas in 2012, from Alaska to Washington.}
+\end{sidewaysfigure}
 
 
-\section{Simulation and comparison of PBT and CWTs}
+\begin{sidewaysfigure}
+\begin{center}
+\includegraphics[width=\textwidth]{images/recovery_histo_panel_2.pdf}
+\end{center}
+\caption{The number of CWT recoveries from 1435 Chinook tag codes across different recovery areas in 2012, from Washington to California.}
+\end{sidewaysfigure}
+
+
+\section{Estimation of $\btheta$ in Fisheries Along the Coast \label{sec:estimation}}
+
+\begin{sidewaysfigure}
+\begin{center}
+\includegraphics[width=\textwidth]{images/actual_vs_pred_cwt_recoveries_p_marked.pdf}
+\end{center}
+\caption{Posterior predictive checks of the the number of CWT recoveries predicted from the parameter estimates compared
+to the actual number of recoveries.  Each point is a tag code which is colored according to $p_m$.  Note that occurrence
+of BC release groups with $p_m$ reported to be 0.}
+\end{sidewaysfigure}
+
+
+
+\begin{sidewaysfigure}
+\begin{center}
+\includegraphics[width=\textwidth]{images/post_mean_theta_v_counts_f_marked_times_p_marked.pdf}
+\end{center}
+\caption{Posterior mean $\theta_g$ plotted on $x$-axis with observed number of CWTs recovered on $y$.  Each point is a
+tag code colored by the proportion of the release group associated with the tag code that is both ad-clipped and tagged.}
+\end{sidewaysfigure}
+
+
+
+\section{Comparison of PBT to CWTs \label{sec:compare}}
 
 Not yet done.
 
