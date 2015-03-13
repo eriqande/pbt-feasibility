@@ -207,7 +207,7 @@ W = (W_1,\ldots, W_S) \sim \mathrm{Mult}_S(N_A, (q_1, \ldots, q_S))
 The parameters $r$ and $\alpha$ are the two that directly affect variance in family size.  $r$ 
 controls the variance in the number of juveniles from each family at the time of tagging.  It is meant
 to reflect variation between females in fecundity and family-specific variation in smolt to adult survival.  
-Given a mean number of juveniles $\mu$ a good rule of thumb is that roughly $\frac{2}{3}$ 
+Given a mean number of juveniles, $\mu$, a good rule of thumb is that roughly $\frac{2}{3}$ 
 of the variation will be contained
 within the interval $\mu \pm \sqrt{\mu + \mu^2/r}$.  For example, if the average number of smolts produced
 per family is 3000, then setting $r$ to 9 means that roughly $\frac{2}{3}$ of the families will have
@@ -226,7 +226,7 @@ for a constant sized population from a multinomial distribution:
 and then calculating the probability that two gene copies sampled from amongst those offspring
 are identical by descent as:
 \[
-P(\mathrm{IBD}) = \frac{1}{4}\sum_{i=1}^S \frac{C_i}{2S}\frac{C_i - i}{2S - 1}.
+P(\mathrm{IBD}) = \frac{1}{4}\sum_{i=1}^S \frac{C_i}{2S}\frac{C_i - 1}{2S - 1}.
 \]
 $P(\mathrm{IBD})$ is recorded for each replicate at a particular value of $S$, $r$, and $\alpha$, the average
 of those values, $\widehat{P(\mathrm{IBD})}$, is taken and the effective size of the population is estimated
@@ -235,13 +235,13 @@ by $N_e = [2\widehat{P(\mathrm{IBD})}]^{-1}$.
 \section{Simulations}
 Here I present simulations at 6 different values of $S = 10, 25, 50, 100, 250, 1000$.  For each value of $S$,
 I will assume two different values for the fraction of families that are genotyped: 80\% and 96\%; and 
-finally, two the preceding 12 conditions, I add two different scenarios of variance in family size. I call
+finally, to the preceding 12 conditions, I add two different scenarios of variance in family size. I call
 the first the ``Wright-Fisher'' scenario in which each family produces a Poisson distributed number of
 juveniles at the release stage (equivalent to $\mu=3000$, and $r\rightarrow\infty$) and there is no
 additional variance due to differential family 
 survival, post-release (\ie $\alpha \rightarrow \infty$). The second scenario, called ``Ne50'', has
 $\mu = 3000$, $r = 30$, and $\alpha = 1$.  This scenario produces an $N_e/2S$ ratio that is close to
-0.5.  In all simulations $A_F$, the number of adults remaining at the time of recovery, was set to 
+0.5.  In all simulations, $A_F$, the number of adults remaining at the time of recovery, was set to 
 be $10S$, or 5 times above replacement for the parents of the release group. One thousand replicate simulations were run for each of these 24 different combinations of simulation parameters. The resulting distribution of realized tagging
 rates ($\tilde{p}_\mathrm{pbt}$ and $\tilde{p}_\mathrm{cwt}$)
 are shown in Figures~\ref{fig:wf80}--\ref{fig:ne50-96}.

@@ -7,6 +7,7 @@ library(dplyr)
 library(reshape2)
 library(stringr)
 library(parallel)
+library(GGally)
 
 source("R/rmis_cleaning.R")
 source("R/mcmc_funcs.R")
@@ -206,3 +207,28 @@ ggsave("post_mean_theta_v_counts_f_marked_times_p_marked.pdf", width = 14, heigh
 
 #### It might be interesting to add Bayesian credible intervals to the proportion estimates ####
 cred_ints <- lapply(viz_results, cred_int_mcmc_theta_gs)
+
+
+#### I want to make a scatterplot matrix like thing with the estimated fishery proportions
+#### compared across fisheries---this will give us some idea of how flexible one might be in fiddling
+#### with tagging and marking rates to improve recovery rates on a lot of stocks in a lot of fisheries
+#### We will use the GGally library
+
+# first I need to cast the thetas into a multi-column data frame grouped by tag_code and recovery_group 
+A <- compare_counts_to_theta %>% 
+  select(tag_code, recovery_group, post_mean_theta_gs) %>%
+  mutate(recov_group = str_extract(recovery_group, "^([0-9][0-9])-([A-Z][A-Z])") 
+         %>% str_replace("-", "_") %>% paste("f", ., sep = "")
+         ) %>%  # make a shorter name for it
+  select(-recovery_group) %>%
+  dcast(., tag_code ~ recov_group, value.var = "post_mean_theta_gs") %>%
+  tbl_df
+
+# now, let's join the release location and the p_marked and f_marked on that 
+B <- compare_counts_to_theta %>%
+  select(tag_code, release_location_state, f_marked, p_marked) %>%
+  inner_join(., A)
+
+
+# now we can run ggpairs.  Gotta fiddle with the size and colors of dots still.
+pm <- ggpairs(B, columns = 5:ncol(B))

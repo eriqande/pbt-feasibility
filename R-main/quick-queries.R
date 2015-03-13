@@ -17,3 +17,12 @@ tmp <- releases %>%
 num_fish <-  tmp %>% summarise_each(funs(sum))
 num_releases <-  tmp %>% summarise(num_release_groups = n())
 inner_join(num_releases, num_fish)
+
+by_state_year <- inner_join(num_releases, num_fish)
+
+
+by_state_year %>%
+  group_by(species, brood_year) %>%
+  summarise_each(funs(sum), starts_with("n_")) %>%
+  filter(brood_year != 2012) %>%
+  summarise_each(funs(mean), starts_with("n_"))
