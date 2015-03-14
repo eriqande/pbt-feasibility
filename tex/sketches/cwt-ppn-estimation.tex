@@ -74,7 +74,7 @@ a data-driven, large scale assessment}
 \section{Introduction}
 Here, we seek to address this information need:
 \begin{quote}
-{\sl Assessment of the degree to which this system could or could not deliver estimates of the key life history and fishery parameters that are currently delivered from the CWT program and do so with similar or better accuracy (i.e., consider errors of estimation). Identify areas or issues where implementation of PBT on a coast-wide basis seems most problematic. }
+{\sl Assessment of the degree to which this [PBT] system could or could not deliver estimates of the key life history and fishery parameters that are currently delivered from the CWT program and do so with similar or better accuracy (i.e., consider errors of estimation). Identify areas or issues where implementation of PBT on a coast-wide basis seems most problematic. }
 \end{quote}
 
 There are two main variables that influence the accuracy of different estimates of life-history and 
@@ -94,12 +94,12 @@ will almost certainly reduce the fraction of marked fish (in mixed fisheries) th
 certain weak or underrepresented stocks, decreasing the recovery rate for those stocks.  Therefore, 
 increasing tag rates through PBT must be done in a more nuanced and selective fashion.  
 
-The degree to which selective increases in tagging rates can improve recovery rates for many 
+The degree to which selective increases in mark and tagging rates can improve recovery rates for many 
 stocks depends on a number of factors.  For example, recovery rates for a weak stock cannot be 
-easily increased if that stock is already tagged at 100\%.  Furthermore,
-the effect upon any particular fishery of increasing the tagging rates on a group of stocks depends
+easily increased if that stock is already tagged and marked at 100\%.  Furthermore,
+the effect upon any particular fishery of increasing the tagging and mark rates on a group of stocks depends
 fundamentally upon the relative composition of those stocks in the fishery.  And, of course,
-tag-rate increases that improve recoveries of a release group that is rare in one fishery might,
+tag-and-mark-rate increases that improve recoveries of a release group that is rare in one fishery might,
 if that stock is common in a second fishery, have the effect of reducing recovery rates of other
 stocks in that second fishery.  On top of that, the effect of increasing tag rates on a fishery will
 depend on other features of the fishery, for example, whether it is visually or electronically sampled.
@@ -121,7 +121,7 @@ and hence more accurate estimates, from multiple release groups across the whole
 
 The remainder of this document is divided into five main sections.  In {\sc \nameref{sec:prelims}},
 we summarize and make explicit some of the assumptions and operating perspectives we have adopted
-in this work.  {\sc \nameref{sec:bayes}} gives details of the model used to estimate
+in this work.  {\sc \nameref{sec:bayes}} developes the  model used to estimate
 proportions of different release groups in fisheries.  {\sc \nameref{sec:agg}} describes how we divided
 Chinook fisheries in 2012 into a few large recovery areas and summarizes the number of CWTs from
 each release group recovered in those fisheries. In {\sc \nameref{sec:estimation}} we apply the
@@ -137,47 +137,49 @@ rates expected from using current CWT tagging rates.
 
 \section{Preliminaries and Assumptions \label{sec:prelims}}
 
-In order to make this undertaking manageable, while still yielding useful information, I make
-a few assumptions, listed below:
+In order to make this undertaking manageable, while still yielding useful information, we make several
+assumptions, listed below:
 \begin{enumerate}
-\item {\sl The tag-code is the basic unit for fishery estimation.} I suspect that for many estimation purposes
+\item {\sl The tag-code is the basic unit for fishery estimation.} We suspect that for many estimation purposes
 it is customary to aggregate multiple tag-codes (release groups) from a given hatchery or across multiple
-hatcheries in a single stock, but I have not done that here.  Our guidance has included the fact that a 
-PBT system must accommodate multiple release groups within any hatchery, so
-there seems a good precedent for focusing on tag-codes as the basic unit for estimation.
-\item {\sl Fishery samples across nearby locations and over time can be aggregated. } Here I am basically assuming
-that the composition of fisheries across nearby locations and over a year can be regarded as identical.  This is
-necessary because very few fishery strata contain enough coded wire tag recoveries to yield a reliable estimate
-of the proportion of fish from each release group in the fishery. {\bf It would be very helpful if the technical
-advisory committee were able to provide a list of how
-different agencies aggregate fishery location and time strata for their management purposes}.
-Not knowing that myself, I have just agglomerated spatially
-proximate fishery locations over entire years to achieve samples of 500 or more CWTs.  Obviously, this is 
-flexible and could be changed with input from the committee.   While this will not
-reflect compositional changes over seasons, my feeling is
-that we are after a reasonable approximation of what the true composition is, and this will likely
-suffice.
+hatcheries in a single stock, but we have not done that here.  Our estimates of fishery proportions will
+always be with respect to different tag codes.  Since there are so many tag codes, and many release groups
+are rather small, a consequence of this is that it is not possible to obtain accurate estimates of proportions
+without large samples.
+\item {\sl Fishery samples across nearby locations and over time can be aggregated. } In order to investigate
+recovery areas in which a sufficient number of tags are recovered so as to make meaningful estimates
+of the proportion of numerous small, release groups, we aggregate somewhat aggressively over space and time. 
+Obviously, fishery composition varies spatially and temporally; however, our purpose here is not to estimate
+proportions for any single small fishery.  Rather we want to get reasonable estimates of composition across
+several large swaths of coast, so as to represent the range of compositions one might encounter across
+coastwide.  
 \item {\sl The tagged and marked fractions of a release group are constant over the life of the fish.}  This
 assumption would be violated if marked or tagged fish experience higher mortality than their unmarked
-counterparts, as could be the case in the presence of very strong mark-selective fishing pressure.  Dealing with
-that seems like it would be overkill for these simulations.  Remember, we are interested in getting results
-for fisheries with proportions that might reasonably be encountered, and I hope that the occurrence of
-some extra mortality on tagged fish will not render the proportions used in the simulation ``unreasonable.''
+counterparts, as could be the case in the presence of very strong mark-selective fishing pressure.  Trying to
+account for this, however, does not seem relevant to our task. Keep in mind that, we are interested in
+getting estimates of fishery compositions that might reasonably be encountered---we are not trying to accurately
+estimate the composition in any specific fishery.
 \item {\sl The only type of mark we concern ourselves with in the estimation of proportions is the
-adipose clip.}  An adipose clip in conjunction with another mark is just counted simply as an ad-clip.
-\item {\sl Currently I am not addressing suitability of either PBT or CWTs for doing DIT-based estimation.}
-\item {\sl This is being developed at the moment for recoveries from fisheries, but it could easily be extended to
-escapement, \etc}
+adipose clip.}  An adipose clip in conjunction with another mark is counted simply as an ad-clip.
+\item {\sl In this document we do not directly address the suitability of either PBT or CWTs for doing DIT-based estimation.}
+\item {\sl We are developing these methods in the context of recoveries from fisheries, but they could easily be
+extended to escapement, \etc}
 \end{enumerate}
 
 
 \section{Bayesian Estimation of Release Group Proportions \label{sec:bayes}}
 
-We propose a simple model to estimate the composition of fish from different release groups
-from CWT recovery data.  We then specify a Gibbs sampler to sample from the posterior
+We propose a simple model to estimate the composition of fish from different release groups,
+using CWT recovery data.  We then specify a Gibbs sampler to sample from the posterior
 distribution of the parameters in the model.
 
-\subsection{Parameters}
+\subsection{Model Formulation}
+
+We first formulate the model for visually-sampled fisheries.  Subsequently we will extend it
+to electronically sampled fisheries, which are only slightly more complex.
+
+
+\subsubsection{Parameters}
 
 Let $\theta_g$ be
 the probability that a fish sampled 
@@ -197,46 +199,55 @@ We define each release group, $g$, to corresond explicitly to a tag code; howeve
 to understand that $\theta_g$ refers not just to the fraction of fish from release group $g$ that
 have CWTs, but {\em all} of the fish in the release group $g$, whether they have
 a CWT or not. As stated above, 
-will think of tag codes, $g$, as being indexed from 1 up to $G$ for the $G$ possible tag codes
+we think of tag codes, $g$, as being indexed from 1 up to $G$ for the $G$ distinct tag {\em codes}
+(not tags, themselves)
 that were actually observed in some marine fishery along the coast during the given year. 
 
 
-We include several other categories:
+Our model includes four more categories to which fish that are not from a release group may belong:
 \begin{description}
 \item{$A+$ and $A-$:}~~Fish from non-associated release groups that carry agency only or blank wire.  These fish cannot be identified to release group but they do all carry wire. The $+$ and the $-$ refer to whether or
 not the fish is ad-clipped.
 \item{$U+$ and $U-$:}~~Fish that don't carry wire of any sort and are not part of an associated release group.  If
 they have an ad-clip, they are part of $U+$; if they don't, they are part of $U-$.  Untagged and unmarked wild
 fish are part of $U-$, as are unmarked fish from non-associated releases.  Untagged but marked fish from
-non-associated releases are in $U+$.
+non-associated releases are in $U+$.  When we say ``associated release group'' we are referring specifically
+to a tagged release record with a {\tt record\_code} of ``T'' in the RMIS Release Data Base.  We use the phrase
+``non-associated'' release to mean a hatchery release that would be denoted in the Release Data Base with
+{\tt record\_code} ``N'' (or any other release that might not have been recorded in the data base at all).
 \end{description}
-Some portions of the $A$ and $U$ categories are not likely to be easily estimated, as they represent the ``leftover'' after all
-the fish from associated releases are accounted for.  It will be interesting to see how their inclusion affects
-estimates of composition uncertainty. The parameter we are interested in is thus $\btheta = (\theta_1,\ldots,\theta_{G},
-\theta_{A+}, \theta_{A-}, \theta_{U+}, \theta_{U-})$, and we note that 
+Some portions of the $A$ and $U$ categories are not likely to be easily estimated,
+as they represent the ``leftover'' after all
+the fish from associated releases are accounted for. 
+
+The parameters in the model we are interested in estimating are collectively denoted
+\[
+\btheta = (\theta_1,\ldots,\theta_{G},
+\theta_{A+}, \theta_{A-}, \theta_{U+}, \theta_{U-}),
+\] 
+and we note that 
 \[
 \theta_{A+} + \theta_{A-} + \theta_{U+} + \theta_{U-} + \sum_{g=1}^{G} \theta_g = 1.
 \] 
 
 
-Each tagged release group $g$ is assumed to have a marked fraction, $f^{(m)}_g$ and an unmarked fraction, $f^{(u)}_g$, 
-such that $0 \leq f^{(m)}_g, f^{(u)}_g \leq 1$ and $f^{(m)}_g + f^{(u)}_g = 1$.  We consider a fish to be ``marked'' if it has an ad-clip (whether or
-not in combination with another mark).   Associated with each of these fractions is a CWT tagging rate, $p$.  So, $p^{(m)}_g$ denotes the
+\subsubsection{Release, Catch-Sample, and Recovery Data}
+
+In each tagged release group $g$, a fraction $f^{(m)}_g$ ($0\leq f^{(m)}_g \leq 1$)
+of the fish in the release group are marked,
+and the remainder (a fraction $1-f^{(m)}_g$) are unmarked. We consider a fish to be 
+``marked'' if it has an ad-clip (whether or
+not in combination with another mark).   Associated with both the marked and unmarked
+fractions is a CWT tagging rate.  The variable $p^{(m)}_g$ denotes the
 fraction of the marked fish from release group $g$ that carry CWTs, and $p^{(u)}_g$ denotes the fraction
-of unmarked fish from release group $g$ that carry CWTs; $0 \leq p^{(m)}_g, p^{(u)}_g \leq 1$;
-however $p^{(m)}_g + p^{(u)}_g$ is not necessarily equal to 1.  For each $g=1,\ldots,G$, the values of the $p$'s and $f$'s can be obtained
-from information stored in the RMIS release data base.
+of unmarked fish from release group $g$ that carry CWTs. Both $p^{(m)}_g$ and  $p^{(u)}_g$ are between
+0 and 1, inclusive; however they needn't necessarily equal sum to 1.  For each $g=1,\ldots,G$, the value of
+$f^{(m)}_g$, $p^{(m)}_g$, and $p^{(u)}_g$ can be obtained
+from the RMIS release data base.
 
-
-It is important to understand that I will be agglomerating different fishery strata in order to obtain
-relatively large samples of CWTs with which to estimate $\btheta$.  In such cases I will assume that
-$\btheta$ is identical across all agglomerated strata.  This is obviously a simplification, but it does not make 
-sense to estimate a separate $\btheta$ for every stratum, some of which have only a few CWT recoveries.
-The other consequence
-of this policy is that I will likely end up using both visually and electronically detected samples, together, to 
-estimate any particular $\btheta$.  Thus, we would like our estimation method to
-appropriately weight information from each type of sample.  I believe the Bayesian framework I
-describe below achieves that.
+For each recovery area, we provide the model with $N_v$---the number of fish that were
+visually sampled for adipose fin clips.  $N_v$ can be found by summing the {\tt mr\_1st\_sample\_known\_ad\_status} field in the RMIS catch-sample data base across all the fisheries in the recovery area over the
+time in question.  
 
 \subsection{Missing data formulation}
 We can develop our estimation framework by noticing that we are missing information here
@@ -262,20 +273,6 @@ will be used in the computer code that goes with this project, and the mathemati
 following give
 the indicator variables and their values that will be used in the upcoming mathematical formulations.
 \begin{description}
-	\item [{\tt detection\_method}:] ~~~$\delta_i^{(\mathrm{dm})}$~~~The method used to screen fish to discover CWTs. ($\delta_i^{(\mathrm{dm})}$ is the detection method of fish $i$ in the sample).
-	\begin{itemize}
-		\item [{\tt V}:] ~~~$\delta_i^{(\mathrm{dm})} = \mathrm{V}$~~~if the fish was visually sampled.
-		\item [{\tt E}:] ~~~$\delta_i^{(\mathrm{dm})} = \mathrm{E}$~~~if the fish was electronically sampled.
-	\end{itemize}
-	\item [{\tt beep}:] ~~~$\delta_i^{(\mathrm{b})}$~~~Whether or not it beeped upon electronic detection. Possible values are:
-	\begin{description}
-		\item [{\tt yes}:] ~~~$\delta_i^{(\mathrm{b})} = 1$~~~The fish beeped when detected electronically.
-		\item [{\tt no}:]  ~~~$\delta_i^{(\mathrm{b})} = 0$~~~The fish did not beep when detected electronically.
-		\item [{\tt irrelevant}:] The fish was not sampled electronically.
-		Must be irrelevant if detection\_method is {\tt V}. Might be irrelevant if the fish is part of a
-		mark sample that is drawn {\em independently} of the beep-status for fish in a fishery with
-		electronic detection.
-	\end{description}
 	\item [{\tt ad\_clipped}:]  ~~~$\delta_i^{(\mathrm{ac})}$~~~Does the fish have an adipose clip? 	An ad-clip, even in combination with any other marks is still counted.
 	\begin{description}
 		\item [{\tt yes}:]  ~~~$\delta_i^{(\mathrm{ac})} = 1$~~~The fish was observed to have an ad-clip.
@@ -361,6 +358,24 @@ and given it does not have an ad-clip is:
 \]
 \etc
 
+\subsection{Modifying for Electronically Sampled Fisheries}
+\begin{description}
+	\item [{\tt detection\_method}:] ~~~$\delta_i^{(\mathrm{dm})}$~~~The method used to screen fish to discover CWTs. ($\delta_i^{(\mathrm{dm})}$ is the detection method of fish $i$ in the sample).
+	\begin{itemize}
+		\item [{\tt V}:] ~~~$\delta_i^{(\mathrm{dm})} = \mathrm{V}$~~~if the fish was visually sampled.
+		\item [{\tt E}:] ~~~$\delta_i^{(\mathrm{dm})} = \mathrm{E}$~~~if the fish was electronically sampled.
+	\end{itemize}
+	\item [{\tt beep}:] ~~~$\delta_i^{(\mathrm{b})}$~~~Whether or not it beeped upon electronic detection. Possible values are:
+	\begin{description}
+		\item [{\tt yes}:] ~~~$\delta_i^{(\mathrm{b})} = 1$~~~The fish beeped when detected electronically.
+		\item [{\tt no}:]  ~~~$\delta_i^{(\mathrm{b})} = 0$~~~The fish did not beep when detected electronically.
+		\item [{\tt irrelevant}:] The fish was not sampled electronically.
+		Must be irrelevant if detection\_method is {\tt V}. Might be irrelevant if the fish is part of a
+		mark sample that is drawn {\em independently} of the beep-status for fish in a fishery with
+		electronic detection.
+	\end{description}
+
+\end{description}
 
 \section{Aggregation and Characterization of 2012 Fisheries \label{sec:agg}}
 
