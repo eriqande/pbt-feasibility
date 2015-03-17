@@ -5,3 +5,13 @@ tmp_*
 group_planning_etc
 marktypes.csv
 /tag_fracts_*.pdf
+actual_vs_pred*.pdf
+actual_vs_pred*.csv
+data_for_mcmc.rds
+post_mean_theta_v*.pdf
+recovery_histo_panel*.pdf
+recovery_trees*.pdf
+figs_for_lab*.pdf
+ppn_marked_that_have*.pdf
+theta_g_matrix.pdf
+uas_traces.pdf
