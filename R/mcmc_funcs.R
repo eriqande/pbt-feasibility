@@ -150,6 +150,8 @@ cwt_ppn_estimation_function <- function(s, reps = 10000, thin = 10,
   recov_sums <- as.data.frame(table(recovs_factored$ad_clipped, recovs_factored$cwt_status))
   names(recov_sums) <- c("ad_clipped", "cwt_status", "n")
   
+  
+  ######## This will have to be modified for electronic fisheries ##########
   # for now, just deal with the visual recoveries.  We do that by just adding the number
   # of no-adclip fish from the catch-sample information into the no, unknown category
   recov_sums$n[recov_sums$ad_clipped == "no" & recov_sums$cwt_status == "unknown"] <- 
