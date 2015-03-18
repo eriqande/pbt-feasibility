@@ -78,3 +78,10 @@ final_summary %>% group_by(species) %>% summarise(tot = sum(num_tag_codes))
 
 # write out a csv
 write.csv(final_summary, file = "num_functional_release_groups_per_hatchery.csv")
+
+# make a histogram
+ggplot(final_summary, aes(x = num_funct_equiv_rel_groups - 1, fill = release_location_state)) +
+  geom_histogram(binwidth = 1) + 
+  facet_wrap(~ species, ncol = 2)
+
+ggsave(file = "num_fe_rel_groups_hist.pdf", width = 14, height = 10)
