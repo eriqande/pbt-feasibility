@@ -109,10 +109,10 @@ schemes employed in them.
 
 Here, we divide the marine fisheries in the year 2012 for Chinook salmon along
 the Pacific Coast of North America into
-18 regions and estimate the composition of fish recovered from those regions by applying a novel
+18 regions (recovery areas) and estimate the composition of fish recovered from those regions by applying a novel
 Bayesian estimation model to data from the Regional Mark Information System (RMIS) data base.  After
 confirming that the model fits the data well, we use the estimated composition of release groups
-in each region to explore how expected recovery rates change under different scenarios of modifying the 
+in each region to explore how expected recovery rates change under different scenarios of modified 
 tagging and marking rates of PBT.  The expected recovery rates of PBT-tagged fish can be easily compared
 to the expected recovery rates of CWTs given current tagging and marking rates, which provides a principled
 way of assessing the degree to which a PBT program might be able to yield more recoveries, 
@@ -121,15 +121,15 @@ and hence more accurate estimates, from multiple release groups across the whole
 
 The remainder of this document is divided into five main sections.  In {\sc \nameref{sec:prelims}},
 we summarize and make explicit some of the assumptions and operating perspectives we have adopted
-in this work.  {\sc \nameref{sec:bayes}} developes the  model used to estimate
+in this work.  {\sc \nameref{sec:bayes}} develops the  model used to estimate
 proportions of different release groups in fisheries.  {\sc \nameref{sec:agg}} describes how we divided
-Chinook fisheries in 2012 into a few large recovery areas and summarizes the number of CWTs from
+Chinook fisheries in 2012 into a few large recovery areas and it gives a summary of the number of CWTs from
 each release group recovered in those fisheries. In {\sc \nameref{sec:estimation}} we apply the
 Bayesian model to each large recovery area and present the estimates, as well as the posterior
 predictive checks which verify that the model fits the data.  Finally, in
 {\sc\nameref{sec:compare}}, we discuss different schemes for setting tagging rates at
 PBT hatcheries and then compare expected recovery rates under those schemes to the recovery
-rates expected from using current CWT tagging rates.  
+rates expected while using current CWT tagging rates.  
 
 
 
@@ -147,11 +147,11 @@ always be with respect to different tag codes.  Since there are so many tag code
 are rather small, a consequence of this is that it is not possible to obtain accurate estimates of proportions
 without large samples.
 \item {\sl Fishery samples across nearby locations and over time can be aggregated. } In order to investigate
-recovery areas in which a sufficient number of tags are recovered so as to make meaningful estimates
-of the proportion of numerous small, release groups, we aggregate somewhat aggressively over space and time. 
+recovery areas in which a sufficient number of tags are recovered to make meaningful estimates
+of the proportion of numerous small release groups, we aggregate somewhat aggressively over space and time. 
 Obviously, fishery composition varies spatially and temporally; however, our purpose here is not to estimate
 proportions for any single small fishery.  Rather we want to get reasonable estimates of composition across
-several large swaths of coast, so as to represent the range of compositions one might encounter across
+several large swaths of coast, so as to represent the range of compositions one might encounter 
 coastwide.  
 \item {\sl The tagged and marked fractions of a release group are constant over the life of the fish.}  This
 assumption would be violated if marked or tagged fish experience higher mortality than their unmarked
@@ -173,10 +173,11 @@ We propose a simple model to estimate the composition of fish from different rel
 using CWT recovery data.  We then specify a Gibbs sampler to sample from the posterior
 distribution of the parameters in the model.
 
-\subsection{Model Formulation}
+\subsection{Model for Visually-Sampled Fisheries}
 
-We first formulate the model for visually-sampled fisheries.  Subsequently we will extend it
-to electronically sampled fisheries, which are only slightly more complex.
+We first formulate the model for visually-sampled fisheries.  It is subsequently
+relatively straightforward to extend it
+to electronically-sampled fisheries.
 
 
 \subsubsection{Parameters}
@@ -187,26 +188,26 @@ from the ocean within a given recovery area  is from release group $g$, $g = 1,\
 where $G$ is the total number of distinct tag codes with at least one recovery, coastwide,
 during the year.  Denote all of those probabilities by $\btheta = (\theta_1, \ldots, \theta_G)$.
 We don't specifically denote the recovery area in order to avoid an
-overproliferation of subscripts, but remind the reader that recovery $\theta_g$ is defined in
+overproliferation of subscripts, but remind the reader that $\theta_g$ is defined in
 reference to a particular recovery area. Note that $\btheta$ might not reflect the
 true composition of fish in the recovery area because of length restrictions on the catch, \etc  We contend
 that this is not a great concern because, for our purpose, what we wish to estimate is the
 probability that a fish from a certain release group will
-be caught and retained in the fishery, and that is what precisely what $\theta_g$ reflects.
+be caught and retained in the fishery, and that is precisely what $\theta_g$ reflects.
 
 
-We define each release group, $g$, to corresond explicitly to a tag code; however, it is important
+We define each release group, $g$, to correspond explicitly to a tag code; however, it is important
 to understand that $\theta_g$ refers not just to the fraction of fish from release group $g$ that
 have CWTs, but {\em all} of the fish in the release group $g$, whether they have
-a CWT or not. As stated above, 
+a CWT (or an ad-clip) or not. As stated above, 
 we think of tag codes, $g$, as being indexed from 1 up to $G$ for the $G$ distinct tag {\em codes}
 (not tags, themselves)
-that were actually observed in some marine fishery along the coast during the given year. 
+that were actually observed in at least one marine fishery during the given year. 
 
 
-Our model includes four more categories to which fish that are not from a release group may belong:
+Our model includes four more categories to which a fish that is not from a release group may belong:
 \begin{description}
-\item{$A+$ and $A-$:}~~Fish from non-associated release groups that carry agency only or blank wire.  These fish cannot be identified to release group but they do all carry wire. The $+$ and the $-$ refer to whether or
+\item{$A+$ and $A-$:}~~Fish from non-associated release groups that carry agency-only or blank wire.  These fish cannot be identified to release group but they do all carry wire. The $+$ and the $-$ refer to whether or
 not the fish is ad-clipped.
 \item{$U+$ and $U-$:}~~Fish that don't carry wire of any sort and are not part of an associated release group.  If
 they have an ad-clip, they are part of $U+$; if they don't, they are part of $U-$.  Untagged and unmarked wild
@@ -222,13 +223,20 @@ the fish from associated releases are accounted for.
 
 The parameters in the model we are interested in estimating are collectively denoted
 \[
-\btheta = (\theta_1,\ldots,\theta_{G},
-\theta_{A+}, \theta_{A-}, \theta_{U+}, \theta_{U-}),
+\btheta = (\theta_{A+}, \theta_{A-}, \theta_{U+}, \theta_{U-},\theta_1,\ldots,\theta_{G})
 \] 
 and we note that 
 \[
 \theta_{A+} + \theta_{A-} + \theta_{U+} + \theta_{U-} + \sum_{g=1}^{G} \theta_g = 1.
 \] 
+We will assume a Dirichlet prior on these probabilities parameterized by the vector
+$\bm{\gamma} = (\gamma_{A+},\- \gamma_{A-},\- \gamma_{U+},\- \gamma_{U-},\- \gamma_{1}, \ldots, \gamma_G)$, so that 
+{\em a priori}
+\[
+\btheta \sim \mathrm{Dirichlet}(\bm{\gamma}).
+\]
+We use $\gamma_{A+} = \gamma_{A-} = \gamma_{U+} = \gamma_{U-} = \frac{1}{4}$ and $\gamma_g = \frac{1}{G}$, for $g=1,\ldots, G$.
+
 
 
 \subsubsection{Release, Catch-Sample, and Recovery Data}
@@ -241,7 +249,7 @@ not in combination with another mark).   Associated with both the marked and unm
 fractions is a CWT tagging rate.  The variable $p^{(m)}_g$ denotes the
 fraction of the marked fish from release group $g$ that carry CWTs, and $p^{(u)}_g$ denotes the fraction
 of unmarked fish from release group $g$ that carry CWTs. Both $p^{(m)}_g$ and  $p^{(u)}_g$ are between
-0 and 1, inclusive; however they needn't necessarily equal sum to 1.  For each $g=1,\ldots,G$, the value of
+0 and 1, inclusive; however they needn't necessarily sum to 1.  For each $g=1,\ldots,G$, the value of
 $f^{(m)}_g$, $p^{(m)}_g$, and $p^{(u)}_g$ can be obtained
 from the RMIS release data base.
 
@@ -249,29 +257,30 @@ For each recovery area, we provide the model with $N_v$---the number of fish tha
 visually sampled for adipose fin clips.  $N_v$ can be found by summing the {\tt mr\_1st\_sample\_known\_ad\_status} field in the RMIS catch-sample data base across all the fisheries in the recovery area over the
 time in question.  
 
-\subsection{Missing data formulation}
-We can develop our estimation framework by noticing that we are missing information here
+\subsubsection{The Data (Missing and Otherwise) for Each Sampled Fish}
+We develop our estimation framework by noticing that we are missing information
 that would make the estimation problem quite easy---namely, if we knew the release group of every
 fish we sampled in a fishery (whether it had a CWT or an ad-clip or not).  In that case, we would have a simple multinomial
 formulation with a Dirichlet prior.  Of course, we don't know the release group of every sampled
-fish---that is missing!  But thinking about the problem this way shows us that it is a classic
+fish---that information is missing!  However, thinking about the problem this way shows us that it is a classic
 missing-data problem for which the EM-algorithm or Gibbs sampling are useful.  In our case we will
-formulate a way to sample over the unknown origins of all of the sampled fish in a stratum (whether or 
-not they have an ad-clip or carry a CWT) given 
+formulate a way to sample over the unknown origins of all of the sampled fish in a stratum whose release group
+is not known, given 
 everything else we know about them.
-In other words, for every fish that is handled in some way (either visually inspected for an ad-clip or
+In other words, for every fish that is handled in some way (either visually inspected for an ad-clip or,
+when we extend the model below,
 electronically scanned for a CWT) we can sample over that crucial piece of missing data---the fish's origin.
 Having sampled all the fish's tag-codes of origin we can use them to update our estimate of
-$\btheta$---a simple Gibbs sampler that will be described in detail below.
+$\btheta$, and then iterate that process---a simple Gibbs sampler that will be described in detail below.
 
-\subsection{The data (missing and otherwise) for each ``sampled'' fish}
 
-For each fish that is sampled---any fish that someone looks at to see if it has a mark, or
-runs  through a metal detector to see if it beeps---the list below shows what we shall keep track of (and
+For each fish that is sampled---any fish that someone looks at to see if it has an ad-clip---the list below shows what we shall keep track of (and
 update/impute as necessary).  The names in {\tt monospaced} font below refer to the specifications that
 will be used in the computer code that goes with this project, and the mathematical notations immediately
 following give
 the indicator variables and their values that will be used in the upcoming mathematical formulations.
+Values corresponding to ``unobserved''  
+are colored blue. Those are values that will be udpated during the course of MCMC.
 \begin{description}
 	\item [{\tt ad\_clipped}:]  ~~~$\delta_i^{(\mathrm{ac})}$~~~Does the fish have an adipose clip? 	An ad-clip, even in combination with any other marks is still counted.
 	\begin{description}
@@ -309,56 +318,121 @@ the indicator variables and their values that will be used in the upcoming mathe
 \end{description}
 
 
-The states that constitute ``missing data'' or ``latent variables,'' and which may be updated
-are colored blue.
 
-\subsection{MCMC}
 
-Given this setup, we can devise a straightforward Gibbs sampler that samples values of $\btheta$, and the 
-{\tt unknown} variables for each sampled fish from their joint posterior distribution. To do so we will
+\subsubsection{Probabilities of Fully-Observed Categories}
+Given the current value of $\btheta$, it is straightforward to compute the expected proportions of fish
+in the six fully-observed categories corresponding to the two possible observed states of ad-clipping, 
+$\delta_i^{(\mathrm{ac})} = 1$ and $\delta_i^{(\mathrm{ac})} = 0$, and the 3 possible states of CWT status:
+1) the fish is known to have a CWT: either $\delta_i^{(\mathrm{cs})} = 1$ or $\delta_i^{(\mathrm{cs})} = n$, 2) the fish
+is known to have agency-only wire: $\delta_i^{(\mathrm{cs})} = a$, or 3) the fish is known to carry no wire at all:
+$\delta_i^{(\mathrm{cs})} = 0$. These probabilities, enumerated in Table~\ref{tab:probs}, provide us with the values
+we need for computing the full conditional distribution of the ad-clip status and {\tt cwt-status} of every sampled individual
+that is not fully observed for those characteristics.
+\begin{table}
+\caption{Expected fractions (probabilities) of fully-observed categories given $\btheta$.  The ``Symbol'' column shows
+how we will subsequently refer to each of these probabilities. \label{tab:probs} }
+\begin{center}
+\begin{tabular}{lcccl}
+\hline \hline\\
+Category&~~~~~$\delta_i^{(\mathrm{ac})}$~~~~~      &      ~~~~~$\delta_i^{(\mathrm{cs})}$~~~~~     &     ~~~~~Symbol~~~~~   &   Probability \\\hline
+\\
+1 & 1 &  1 or $n$  &  $\phi_{1,1}$     &  $\sum_{g=1}^G \theta_g f_g^{(m)}  p_g^{(m)}$ \\
+\\
+2 & 1 &  $a$  &  $\phi_{1,a}$     &  $\theta_{A+}$ \\ 
+\\
+3 & 1 &  0  &  $\phi_{1,0}$     &  $\sum_{g=1}^G \theta_g f_g^{(m)}  (1 - p_g^{(m)}) + \theta_{U+}$  \\
+\\
+4 & 0 &  1 or $n$  &  $\phi_{0,1}$     &  $\sum_{g=1}^G \theta_g (1 - f_g^{(m)})  p_g^{(u)}$ \\
+\\
+5 & 0 &  $a$  &  $\phi_{0,a}$     &  $\theta_{A-}$ \\ 
+\\
+6 & 0 &  0  &  $\phi_{0,0}$     &  $\sum_{g=1}^G \theta_g  (1 - f_g^{(m)}) (1 - p_g^{(u)}) + \theta_{U-}$  \\
+\hline\hline
+\end{tabular}
+\end{center}
+\end{table}
+For example, a fish that had unknown ad-clip status and unkown {\tt cwt\_status} could belong to any of categories~1--6,
+and the full conditional probability that it belongs to any of those is given by the probabilities $\phi_{1,1},\ldots,\phi_{0,0}$, respectively.  By contrast, for example, a fish that was known to have
+an ad-clip, but had unknown {\tt cwt\_status} could
+only belong to one of the three fully observed categories~1--3, each with probability proportional to $\phi_{1,1}$, 
+$\phi_{1,a}$, or $\phi_{1,0}$.
+
+An important summary of the data is the number of sampled fish in each category.  We let $n_{1,1}$ denote the number 
+of sampled fish that are known to have an ad-clip and are known to have a CWT.  Likewise, $n_{1,a}$, $n_{1,0}$, $n_{0,1}$, $n_{0,a}$, and $n_{0,0}$ are defined in a similar fashion with their subscripts corresponding to the $\phi$ 
+symbols of Table~\ref{tab:probs}. The collection of a all of these $n$'s, summarized in vector form we refer to as $\bm{n} =
+(n_{1,1}, n_{1,a}, n_{1,0}, n_{0,1}, n_{0,a}, n_{0,0})$. Finally, fish with unknown ad-clip or CWT status are counted yielding $n_{1,?}$ fish with
+an ad-clip but with unknown {\tt cwt\_status}; $n_{0,?}$ fish known to have no ad-clip but with unknown {\tt cwt\_status}; $n_{?,1}$ fish with unknown ad-clip status that have coded wire tags; $n_{?,a}$ fish with unknown ad-clip status that are known to have agency-only wire; $n_{?,0}$ fish with unknown ad-clip status
+that are known to not have coded wire tags; and $n_{?,?}$ fish with unknown ad-clip and CWT status.
+
+\subsubsection{MCMC}
+
+Given this setup, we devise a straightforward Gibbs sampler that samples values of $\btheta$, and the 
+{\tt unknown} variables for each sampled fish from their joint posterior distribution. Each sweep of the MCMC
+algorithm simply involves sampling from a few multinomial distributions.  Given a current value of $\btheta$, the
+algorithm proceeds as follows:
+\begin{enumerate}
+\item {\em Allocate the $n_{?,?}$ fish to ad-clipped and non-adclipped categories with or without CWTs:} The $n_{?,?}$ fish are simulated into
+imputed ad-clip and CWT-status categories by drawing from their full conditional:
+\[
+\bm{m}^{(1)} = 
+(m^{(1)}_{1,1}, m^{(1)}_{1,a}, m^{(1)}_{1,0}, m^{(1)}_{0,1},  m^{(1)}_{0,a},  m^{(1)}_{0,0}) \sim 
+\mathrm{Mult}_6\biggl(n_{?,?}\, ; \,(\phi_{1,1}, \phi_{1,a}, \phi_{1,0}, \phi_{0,1}, \phi_{0,a}, \phi_{0,0})\biggr).
+\] 
+\item Allocate the $n_{?,1}$ fish to categories in which their unknown ad-clip status has been imputed:
+\[
+\bm{m}^{(2)} = 
+(m^{(1)}_{1,1}, 0, 0, m^{(1)}_{0,1},  0,  0) \sim 
+\mathrm{Mult}_6\biggl(n_{?,1}\, ; \,(\phi_{1,1}, \phi_{0,1}) / (\phi_{1,1} + \phi_{0,1})\biggr).
+\]
+\item {\em And so forth\ldots}  Similar, easily-derived, update rules are applied to allocate the $n_{?,a}$, $n_{?,0}$, 
+$n_{1,?}$, and $n_{0,?}$, fish in the sample into vectors $\bm{m}^{(3)}$, $\bm{m}^{(4)}$, $\bm{m}^{(5)}$, and $\bm{m}^{(6)}$, 
+respectively. 
+\item The fully-observed and imputed individuals whose release group is unknown 
+(because, for example, their tag was unreadable or 
+ambiguous, or because they had no tag) 
+are allocated to a release group, or to one of the groups $A+$, $A-$, $U+$, or $U-$, by sampling from 
+cell probabilities that are computed 
+by appropriate weightings of $\btheta$. For example, fish known (or imputed) to have an ad-clip and a coded
+wire tag, but with unknown or unreadable tag code are allocated to the $G$ categories with cell probabilities equal to
+\[
+p_g =  \frac{\theta_g f_g^{(m)}  p_g^{(m)}}
+{\sum_{g=1}^G \theta_g f_g^{(m)}  p_g^{(m)}}.
+\]
+Or, for another example, fish known (or imputed) to have no ad-clip and no wire in them are allocated to the $G$ groups or to
+the $U-$ category by sampling from a multinomial with the following cell probabilities:
+\begin{eqnarray}
+p_{U-} & = &  \frac{\theta_{U-}}{\sum_{g=1}^G \theta_g  (1 - f_g^{(m)}) (1 - p_g^{(u)}) + \theta_{U-}} \\
+p_{g} & = &  \frac{\theta_{g}}{\sum_{g=1}^G \theta_g  (1 - f_g^{(m)}) (1 - p_g^{(u)}) + \theta_{U-}}~~~,~~~g = 1,\ldots, G \\
+\end{eqnarray}
+\item Once a tag code or $A+$, $A-$, $U+$, or $U-$ is either known or has been imputed for every sampled fish, we count up
+the number of fish in each category, $\bm{z} = (z_{A+},\- z_{A-},\- z_{U+},\- z_{U-},\- z_{1}, \ldots, z_G)$,
+and finally we draw $\btheta'$, an updated value of $\btheta$, by sampling from a Dirichlet distribution:
+\[
+\btheta' \sim \mathrm{Dirichlet}(\bm{\gamma} + \bm{z})
+\]
+\item Set $\btheta$ to $\btheta'$, recalculate the $\phi$ values in Table~\ref{tab:probs}, and then return to step~1 above.
+\end{enumerate}
+
+
+
+
+
+
+
+
+\subsection{Extension to Electronically Sampled Fisheries}
+
+
+To do so we will
 introduce one more parameter whose value will be estimated from the data:  $\alpha$, the probability
 of a false-positive beep.  $\alpha$ is the probability that a fish carrying no wire still gets a positive
 beep during electronic detection.  We will assume that the false-negative rate for electronic detection is
 negligible.
 
-Sampling updated values for $\btheta$, given current values for the missing data is straightforward---the 
-full conditional distribution for $\btheta$ is a Dirichlet distribution
-with parameters equal to the prior weight on each
-release group plus the number of fish from each release group.  Were we using this method to make actual estimates
-for informing fishery management, it would probably make sense to spend a lot of time formulating a prior
-for the tag codes that used information about proximity or similarity of different release groups. In our
-case, however, since we merely want ``reasonable'' estimates for parameterizing a set of simulations, \textcolor{red}{I will assume
-the prior on $\btheta$ is a Dirichlet distribution with overall weight determined to give roughly the correct
-number of different tag codes (this can be derived from properties of the multivariate Ewens distribution.}
 
-Given a current value for $\btheta$, the values of the {\tt unknown} variables, on all the sampled fish that have
-{\tt unknown} values, can be simulated from their full conditional distribution.  For example,
-consider a fish, $i$, that was visually-sampled, has an ad-clip, and had a CWT, but it was unreadable.  The 
-probability that it is from a release group $g$ can be computed:
-\[
-P(\delta_i^{(\mathrm{tc})} = g | \delta_i^{(\mathrm{dm})}=\mathrm{V}, \delta_i^{(\mathrm{ac})} = 1, \delta_i^{(\mathrm{cs})} = 1)
-\propto
-\theta_g f_g^{(m)} p_g^{(m)}
-\]
-for all $g \in \{1,\ldots,G\}$. Computing this for every $g$ and normalizing it gives the full conditional distribution.
 
-Imputing values for the missing data on fish that are not known to carry a CWT is a two step-process that follows
-from decomposing the joint probability of their missing data into the product of two conditional probabilities.
-To express this, it will be helpful to describe some marginal probabilities that can be computed from $\btheta$.  The marginal probability that a fish in the stratum has an ad-clip is:
-\[
-\phi^{(\mathrm{ac})} = \theta_{A+} + \theta_{U+} + \sum_{g=1}^G \theta_g f^{(m)}_g.
-\]
-The probability that a fish carries a coded wire tag associated with a release group, given it has an ad-clip is:
-\[
-\phi^{(\mathrm{cs}=1)}_1 =  \sum_{g=1}^G \theta_g f^{(m)}_g p^{(m)}_g,
-\]
-and given it does not have an ad-clip is:
-\[
-\phi^{(\mathrm{cs}=1)}_0 =  \sum_{g=1}^G \theta_g f^{(u)}_g p^{(u)}_g,
-\]
-\etc
 
-\subsection{Modifying for Electronically Sampled Fisheries}
 \begin{description}
 	\item [{\tt detection\_method}:] ~~~$\delta_i^{(\mathrm{dm})}$~~~The method used to screen fish to discover CWTs. ($\delta_i^{(\mathrm{dm})}$ is the detection method of fish $i$ in the sample).
 	\begin{itemize}
