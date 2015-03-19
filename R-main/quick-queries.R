@@ -47,7 +47,7 @@ R_filt <- R %>%
 
 
 R_filt_group <- R_filt %>%
-  group_by(record_code, release_agency, species, run, brood_year, hatchery_location_code, stock_location_code, release_stage, release_location_code, first_release_date, last_release_date, release_location_state, hatchery_location_name, stock_location_name, release_location_name)
+  group_by(record_code, release_agency, species, run, brood_year, hatchery_location_code, stock_location_code, release_stage, release_location_code, first_release_date, last_release_date, release_location_state, hatchery_location_name, stock_location_name, release_location_name, related_group_type)
 
 # here is the total number of tag_codes
 R_filt %>% group_by(species) %>% tally()
@@ -77,11 +77,13 @@ final_summary %>% group_by(species) %>% summarise(tot = sum(num_tag_codes))
 
 
 # write out a csv
-write.csv(final_summary, file = "num_functional_release_groups_per_hatchery.csv")
+write.csv(final_summary, file = "num_functional_release_groups_per_hatchery_DIT_accounted.csv")
 
 # make a histogram
-ggplot(final_summary, aes(x = num_funct_equiv_rel_groups - 1, fill = release_location_state)) +
-  geom_histogram(binwidth = 1) + 
-  facet_wrap(~ species, ncol = 2)
+final_summary$SpeciesName = c("Chinook", "Coho")[final_summary$species]
+ggplot(final_summary, aes(x = num_funct_equiv_rel_groups, fill = release_location_state)) +
+  geom_histogram(breaks = seq(0.5, max(final_summary$num_funct_equiv_rel_groups) + 0.5, by = 1)) + 
+  facet_wrap(~ SpeciesName, ncol = 2) +
+  xlab("Number of Release-Equivalent Release Groups Per Hatchery Per Brood Year")
 
-ggsave(file = "num_fe_rel_groups_hist.pdf", width = 14, height = 10)
+ggsave(file = "num_fe_rel_groups_hist_DIT_accounted.pdf", width = 14, height = 10)
