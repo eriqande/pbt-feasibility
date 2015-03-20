@@ -425,11 +425,38 @@ and finally we draw $\btheta'$, an updated value of $\btheta$, by sampling from 
 
 
 To do so we will
-introduce one more parameter whose value will be estimated from the data:  $\alpha$, the probability
+introduce two more parameters whose value will either have to be fixed or be estimated from the data:
+ $\alpha$, the probability
 of a false-positive beep.  $\alpha$ is the probability that a fish carrying no wire still gets a positive
-beep during electronic detection.  We will assume that the false-negative rate for electronic detection is
-negligible.
+beep during electronic detection.  We denote by $\beta$ the false-negative rate for electronic detection.  We 
+will likely have to fix this to be zero, or some arbitrary small value.
 
+
+\begin{table}
+\caption{Unnormalized expected fractions (probabilities) of fully-observed categories given $\btheta$, conditional
+on the fish having produced a ``beep'' during electronic tag detection.  The ``Symbol'' column shows
+how we will subsequently refer to each of these probabilities {\em when normalized}. \label{tab:probs} }
+\begin{center}
+\begin{tabular}{lccll}
+\hline \hline\\
+ &  &   &   \multicolumn{2}{c}{\underline{Unnormalized Probability}} \\
+Category&~~~~~$\delta_i^{(\mathrm{ac})}$~~~~~      &      ~~~~~$\delta_i^{(\mathrm{cs})}$~~~~~     &   Beep~~~~~   &  No Beep         \\\hline
+\\
+1 & 1 &  1 or $n$~~~~~~~~~~~~~  &  $\phi^{(b)}_{1,1}=(1-\beta)\phi_{1,1}$~~~~~~~~~~~ &  $\phi^{(a)}_{1,1}=\beta\phi_{1,1}$\\
+\\
+2 & 1 &  $a$  &  $\phi_{1,a}^{(b)}=(1-\beta)\phi_{1,a}$  &  $\phi_{1,a}^{(a)}=\beta\phi_{1,a}$ \\ 
+\\
+3 & 1 &  0  &  $\phi_{1,0}^{(b)}=\alpha\phi_{1,0}$   &  $\phi_{1,0}^{(a)}=(1-\alpha)\phi_{1,0}$ \\
+\\
+4 & 0 &  1 or $n$  &  $\phi_{0,1}^{(b)}=(1-\beta)\phi_{0,1}$   &  $\phi_{0,1}^{(a)}=\beta\phi_{0,1}$ \\
+\\
+5 & 0 &  $a$  &  $\phi_{0,a}^{(b)}=(1-\beta)\phi_{0,a}$   &  $\phi_{0,a}^{(a)}=\beta\phi_{0,a}$  \\ 
+\\
+6 & 0 &  0  &  $\phi_{0,0}^{(b)}=\alpha\phi_{0,0}$    &  $\phi_{0,0}^{(a)}=(1-\alpha)\phi_{0,0}$  \\
+\hline\hline
+\end{tabular}
+\end{center}
+\end{table}
 
 
 
