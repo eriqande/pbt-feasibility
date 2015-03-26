@@ -85,6 +85,67 @@ viz_expect_predict <- function(n, theta_gs, theta_uas, mark_and_tag) {
                                         
 }
 
+
+#' compute an "expected electronic-tag-detection fishery sample" given the current parameter values
+#' 
+#' You can, if you want to, change the mark and tag rates for the stocks and see the effects of that, too.
+#' @param n  The number of fish to electronically sample for tags
+#' @param theta_gs  The mixing proportions of different tag groups
+#' @param theta_uas the four other parameters
+#' @param mark_and_tag dataframe with (at least) the columns f_marked, f_unmarked, p_marked, p_unmarked
+#' @param alpha   ETD false positive rate
+#' @param beta    ETD false negative rate
+etd_expect_predict <- function(n, theta_gs, theta_uas, mark_and_tag, alpha = 0.02, beta = 0.02) {
+  
+  n <- unlist(n)  # make sure it is not part of a table any longer.
+  
+  # make short variables
+  fm <- mark_and_tag$f_marked
+  fu <- mark_and_tag$f_unmarked
+  pm <- mark_and_tag$p_marked
+  pu <- mark_and_tag$p_unmarked
+  
+  # This is the expected fraction of fish that will beep
+  should_beep_fract <- sum(theta_gs * fm * pm) + sum(theta_gs * fu * pu) + sum(theta_uas[c("A_minus", "A_plus")])
+  beep_fract <- should_beep_fract * (1 - beta) + (1 - should_beep_fract) * alpha
+  
+  # here is the expected number of beep fish
+  beep_count <- beep_fract * n
+  
+  # now, we need the fraction of beep fish that have cwts:
+  cwt_fract <- (1 - beta) * (sum(theta_gs * fm * pm) + sum(theta_gs * fu * pu)) / beep_fract
+  cwt_count <- cwt_fract * beep_count
+  
+  # how about the fraction of beep_fish that have ad-clips?
+  ad_fract_beep <- ((1 - beta) * (sum(theta_gs * fm * pm) + theta_uas["A_plus"]) +
+                      alpha * (sum(theta_gs * fm * (1 - pm)) + theta_uas["U_plus"]  ) )  / beep_fract
+  ad_count_beep <- ad_fract_beep * beep_count
+  
+  # and the fraction of no_beep fish that have ad-clips?
+  ad_fract_no_beep <- (1 - alpha) * (sum(theta_gs * fm * pu) + theta_uas["U_plus"]) + 
+    (beta * (sum(theta_gs * fm * pm) + theta_uas["A_plus"]))
+  ad_count_no_beep <- ad_fract_no_beep * (n - beep_count)
+  
+  
+   
+  tag_group_counts <- cwt_count * (theta_gs * fm * pm + theta_gs * fu * pu) / 
+    (sum(theta_gs * fm * pm) + sum(theta_gs * fu * pu)) # expected number of cwts from each tag_group
+  
+  list(etd_samp_size = n,
+       should_beep_fract = should_beep_fract,
+       beep_fract = beep_fract,
+       beep_count = beep_count,
+       ad_fract_beep = ad_fract_beep,
+       ad_count_beep = ad_count_beep,
+       ad_fract_no_beep = ad_fract_no_beep,
+       ad_count_no_beep = ad_count_no_beep,
+       cwt_fract = cwt_fract,
+       cwt_count = cwt_count,
+       tag_group_counts = tag_group_counts)
+  
+}
+
+
 # this is here to set values while developing the function below
 if(FALSE) {
   r <- dat$recovery
@@ -227,6 +288,7 @@ cwt_ppn_estimation_function <- function(s, reps = 10000, thin = 10,
   ret$theta_uas <- vector("list", ceiling(reps / thin))
   ret$predictive_viscounts <- vector("list", ceiling(reps / thin))
   ret$viz_expect_predict <- vector("list", ceiling(reps / thin))
+  
   
   # and put the starting values in there:
   ret$theta_gs[[1]] <- theta_gs
@@ -377,11 +439,15 @@ if(FALSE) {
 #' allocated to the no_adclip with a cwt pile.  With no_ad_tag_ceiling set, fish in that category are tossed into the
 #' U_minus pile no more then no_ad_tag_ceiling * (# of observed adclipped cwt fish) is less than no_ad_tag_ceiling.  Set it
 #' to a negative value to not use it at all. 
+#' @param non_obs_cwt_theta_ceiling If you don't see any cwts from a particular tag group, don't let its
+#' estimated proportion go above this quantity.  We do this by just setting theta for that tag group back 
+#' to 1/1000 if it got above it.  This keeps things from drifting around because of low tagging rates in a stock.
 cwt_ppn_estimation_function_EDT <- function(s, reps = 10000, thin = 10,
                                         unclipped_awts_to_U_minus = TRUE,
                                         no_ad_tag_ceiling = 0.02,
                                         alpha = 0.02,  # these may be initial estimates
-                                        beta = 0.02) {
+                                        beta = 0.02,
+                                        non_obs_cwt_theta_ceiling = 1/1000) {
   ## Since this version is for exclusively ETD fisheries, we confirm here that all the
   ## sampled fish are beep-positive...
   notbeeps <- sum(s$recovery$beep != "yes")
@@ -450,9 +516,9 @@ cwt_ppn_estimation_function_EDT <- function(s, reps = 10000, thin = 10,
   })
   # those are the counts of individuals in these latent categories that include an "unknown"
   
-  # and here, after that we can compute for later use the total number of fish sampled (that is all those
-  # that were checked for an ad-clip in visual fisheries.) We will use this later for predictive checks
-  tot_fish_with_known_ad_status <- unname(unlist(s$catch_sample[s$catch_sample$detection_method == "V", "mr_1st_sample_known_ad_status"]))
+  # and here, after that we can compute for later use the total number of fish that had had a beep
+  tot_beep_fish <- unname(unlist(s$catch_sample[s$catch_sample$detection_method == "E", "mr_1st_sample_size"]))
+  tot_non_beep_fish <- unname(unlist(s$catch_sample[s$catch_sample$detection_method == "E", "mr_2nd_sample_size"]))
   
   # what we need here for electronic fisheries is the number of fish passed over metal detectors
   # and we also need to get the number of ad-clipped and non-adclipped fish in the non-beep partition.
@@ -468,7 +534,11 @@ cwt_ppn_estimation_function_EDT <- function(s, reps = 10000, thin = 10,
   unk_unk <- unname(unlist((s$catch_sample[1, "mr_2nd_sample_size"]))) - adc_unk - no_adc_unk
   
   # now, put those into a counts list that the impute() function can use.
-  no_beep_counts
+  no_beep_counts <- list(
+    list(vars = c(ad_clipped = "yes", cwt_status = "unknown"), n = adc_unk),
+    list(vars = c(ad_clipped = "no", cwt_status = "unknown"), n = no_adc_unk),
+    list(vars = c(ad_clipped = "unknown", cwt_status = "unknown"), n = unk_unk)
+  )
 
 
   #### Initialization             ############
@@ -521,8 +591,8 @@ cwt_ppn_estimation_function_EDT <- function(s, reps = 10000, thin = 10,
   ret$theta_gs <- vector("list", ceiling(reps / thin)) 
   ret$theta_uas <- vector("list", ceiling(reps / thin))
   ret$predictive_viscounts <- vector("list", ceiling(reps / thin))
-  ret$viz_expect_predict <- vector("list", ceiling(reps / thin))
-  
+  ret$etd_expect_predict <- vector("list", ceiling(reps / thin))
+
   # and put the starting values in there:
   ret$theta_gs[[1]] <- theta_gs
   ret$theta_uas[[1]] <- theta_uas
@@ -562,10 +632,15 @@ cwt_ppn_estimation_function_EDT <- function(s, reps = 10000, thin = 10,
     
     
     # then we can lapply that function, bind the results and rowSum them to get the allocations of those individuals.  Cool.
-    alloc_beep <- rowSums(do.call(cbind, lapply(beep_counts, function(x) impute(x, no_beep_prob_table))))
+    alloc_beep <- rowSums(do.call(cbind, lapply(beep_counts, function(x) impute(x, beep_prob_table))))
+    alloc_no_beep <- rowSums(do.call(cbind, lapply(no_beep_counts, function(x) impute(x, no_beep_prob_table))))
     
     # look at what that looks like:
-    cbind(vis_samp_prob_table, alloc)
+    cbind(beep_prob_table, alloc_beep)
+    cbind(no_beep_prob_table, alloc_no_beep)
+    
+    # now, we can add those together and call it alloc
+    alloc <- alloc_beep + alloc_no_beep
     
     if(no_ad_tag_ceiling >= 0) {
       limit <- ceiling(unlist(vis_samp_prob_table$n[1]) * no_ad_tag_ceiling)
@@ -631,16 +706,28 @@ cwt_ppn_estimation_function_EDT <- function(s, reps = 10000, thin = 10,
     }
     theta_gs[] <- tmp[-(1:4)]
     
+    
+    ## Now, if there were no observed CWTs, don't let the estimated theta for that tag group get too high.
+    whack_em <- theta_g_obs_n == 0 & theta_gs > non_obs_cwt_theta_ceiling
+    pre_whack <- theta_gs[whack_em]
+    theta_gs[whack_em] <- non_obs_cwt_theta_ceiling
+    new_normo <- 1 - sum(pre_whack - non_obs_cwt_theta_ceiling)
+    
+    theta_gs <- theta_gs / new_normo
+    theta_uas <- theta_uas / new_normo
+    
     # and store these new values in the output variable if appropriate
     if(iterations %% thin == 0) {
       store_idx <- store_idx + 1
       ret$theta_gs[[store_idx]] <- theta_gs
       ret$theta_uas[[store_idx]] <- theta_uas
       ret$pred_table[[store_idx]] <- predictive_table
-      ret$viz_expect_predict[[store_idx]] <- viz_expect_predict(tot_fish_with_known_ad_status, 
+      ret$etd_expect_predict[[store_idx]] <- etd_expect_predict(tot_beep_fish + tot_non_beep_fish,
                                                                 theta_gs,
                                                                 theta_uas,
-                                                                s$mark_and_tag)
+                                                                s$mark_and_tag,
+                                                                alpha,
+                                                                beta)
     }
     
   }

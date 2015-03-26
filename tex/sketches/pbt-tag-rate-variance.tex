@@ -7,6 +7,8 @@
 \usepackage{subfigure}
 \usepackage{pdfsync}
 \usepackage{xspace}
+\usepackage{color}
+\usepackage{rotating}
 
 %% some handy things for making bold math
 \def\bm#1{\mathpalette\bmstyle{#1}}
@@ -37,12 +39,12 @@
 
 \title{Variation in Parentage-Based Tagging \\
 and Coded-Wire  Tagging  Rates}
-\author{Eric C. Anderson\thanks{
-    Fisheries Ecology Division, 
-    Southwest Fisheries Science Center, 
-    110 Shaffer Road,
-    Santa Cruz, CA 95060}
-}
+%\author{Eric C. Anderson\thanks{
+%    Fisheries Ecology Division, 
+%    Southwest Fisheries Science Center, 
+%    110 Shaffer Road,
+%    Santa Cruz, CA 95060}
+%}
 \begin{document}
 
 \maketitle
@@ -60,11 +62,16 @@ contributed to the release group.  However, unless 100\% of the parents producin
 group are successfully genotyped, the realized PBT tagging rate can differ from the
 expected rate because different families produce different numbers of offspring that survive
 at different rates to time of tagging.  Additional variation is possible due to differential
-survival of family groups to the time of adult sampling.  This document explores these issues
-through simulation.
+survival of family groups to the time of adult sampling.  These issues, as well as their
+consequences for the variance in the estimated expanded number of recoveries, are explored
+through simulation.  The results suggest that it is best to maintain a high ($>96\%$) fraction
+of successfully genotyped parent pairs, especially when a high fraction ($\geq 75\%$) of the
+release group is marked.
+
 \end{abstract}
 
 
+\tableofcontents
 
 Our goal here is to develop a simple system of simulations to describe, explore, and understand
 variation in the realized tagging rates achieved when using parentage-based tagging (PBT)
@@ -76,11 +83,12 @@ Coded wire tags are typically deployed
 when the fish are large enough to be tagged and to have their adipose fins clipped, frequently
 just days before release.  In large hatchery programs, the tagging of release
 groups is often undertaken with specialized tagging trailers that automate the tagging and marking
-process and usually allow for a reasonably precise count of the number of fish tagged,
+process and usually allow for a precise count of the number of fish tagged,
 as well as the total number of fish in the release group.  Within a release group, the tags are
 assumed to be randomly assigned to individual fish, so there is no association between the family
 the fish came from and whether or not it carries a tag.  For these simulations, we will assume
-that the CWT tagging rate, $p_\mathrm{cwt}$, is known without error at the time of release.  
+that the CWT tagging rate, $p_\mathrm{cwt}$, is known without error at the time of release and that
+the rate of tag shedding has been accounted for in it. 
 
 Most CWT recaptures occur in adult fish.  Each tagged fish at the time of recovery can be
 expanded by $1/p_\mathrm{cwt}$ into an estimate of the total number of impacts that the tag recovery represents.
@@ -90,7 +98,8 @@ fraction, $\tilde{p}_\mathrm{cwt}$.  It should be clear that the realized
 tagged fraction is the relevant quantity when expanding
 tag recoveries of adult fish, but is typically not known.  
 We will assume that tagged and untagged fish have the same rate of
-survival so that adult fish can be regarded as a random sample from the fish in the release group (hence not modeling
+survival so that adult fish can be regarded as a random sample from the fish in the release group (hence,
+we are not modeling
 effects of mark selective fisheries, etc.).
 Although the sampling is technically without replacement, it is reasonable to model the sampling as
 with replacement because so few adults survive from any given cohort.  For our simulations, if we consider the
@@ -109,11 +118,14 @@ as a single release group. Let us assume that there are $S$ male-female pairs of
 whose eggs are contributed to the release group.  PBT will work most
 efficiently with 100\% tagging---in other words, when all the parents of a release group
 are genotyped.  However, there may be some rate at which genotypes are not obtained for certain
-individuals.  Because
-genotype data from both parents is currently required for PBT (though that could change with newer genotyping
-systems), an offspring will be tagged by PBT only if both its parents are successfully genotyped. For our 
-simulations, we will let $G$ of the $S$ spawning pairs be composed of a male
-and a female that have both been successfully genotyped. 
+individuals.  Currently,
+genotype data from both parents is  required for PBT; however, with newer genotyping
+systems, that can economically provide more genotypes per individual, it will be possible
+to accurately perform assignments of offspring to single parents.  Regardless of the exact mechanism,
+we can still focus on the tagging rate of families (the offspring of two distinct parents) in the hatchery: under current practices
+a family is tagged if both parents are genotyped; allowing single-parent assignments a family would be
+considered tagged if at least one parent was genotyped.  For our 
+simulations, we will let $G$ families out of $S$ be tagged.
 Under this assumption, the
 fraction of families that are PBT-tagged is,
 \[
@@ -128,7 +140,7 @@ ways one can go about predicting $G$ or $G/S$.
 If cross information is recorded at the
 hatchery, $G$ can be recorded directly from the mating records and the record of successful genotypes.
 If cross information is not recorded, then $G/S$ can be predicted from the total proportion of males and 
-females contributing to the release group that were successfully genotyped (see Campbell/Steele handout).
+females contributing to the release group that were successfully genotyped (see Section~\textcolor{red}{XX}).
 In our simulations we will assume that $G$ is known because we are most interested in the effect of family
 size;  however, if one were interested, it would be possible to add another hierarchy to the simulations in which,
 although $G$ is fixed for the simulation,  $f_\mathrm{pbt}$ had to be estimated from the proportion of males
@@ -143,7 +155,7 @@ within the release group that are PBT-tagged.  This value is simulated by first 
 family produces a negative-binomial distributed number of offspring with mean $\mu$ and 
 overdispersion parameter $r$, (hence giving a variance of $\mu + \frac{\mu^2}{r}$), and then
 assigning the parents of those families randomly to successfully- or unsucessfully-genotyped
-categories.  Currently, we assume a 1:1 mating scheme in our simulations.  Operationally, here
+categories.  Here, we assume a 1:1 mating scheme in our simulations.  Operationally, here
 are the steps to simulating $p_\mathrm{pbt}$:
 \begin{enumerate}
 \item Set values of the parameters for the simulation: $S$, $G$, $\mu$, and $r$.
@@ -151,7 +163,7 @@ are the steps to simulating $p_\mathrm{pbt}$:
 from a negative binomial distribution.  That is:
 \[
 P(J_i = k | \mu, r) = \frac{\Gamma(r + k)}{\Gamma(r)k!}\biggl(\frac{r}{r+\mu}\biggr)^r 
-\biggl(\frac{m}{r+m}\biggr)^k
+\biggl(\frac{\mu}{r+\mu}\biggr)^k
 \] 
 for $k = 1, 2, \ldots$ and $i = 1,\ldots, S$.  
 \item $G$ of the $S$ families are randomly selected to have both parents successfully genotyped. The
@@ -171,8 +183,8 @@ and post-release rates of survival
 are family-specific.  Our simulation scheme has a mechanism to introduce additional
 variability in family-specific survival at this stage.  We assume that family-specific survival rate from release
 stage to adulthood is independent of the number of individuals each family produced in the release
-group.  This seems reasonable, as the selective forces in the wild are very different from those in the 
-hatchery.    These are the steps we take to simulate $\tilde{p}_\mathrm{pbt}$, using
+group (a reasonable assumption, as the selective forces in the wild are very different from those in the 
+hatchery).    These are the steps we take to simulate $\tilde{p}_\mathrm{pbt}$, using
 quantities that were simulated above:
 \begin{enumerate}
 \item Set the value of an additional parameter needed for this part of the simulation: $N_A$, the number
@@ -201,7 +213,32 @@ W = (W_1,\ldots, W_S) \sim \mathrm{Mult}_S(N_A, (q_1, \ldots, q_S))
 \end{enumerate}
 
 
+\section{Consequences of tag rate variation on expanded estimates}
+The above has been developed as if every fish in a release group could potentially be 
+sampled in a fishery.  However, it is common that only a fraction $m$ of a release
+group might be marked and thus have the chance to be sampled.  In such cases, the mark 
+rate must be taken into account to form an expanded estimate of the
+total number of release group fish represented by tag recoveries.  
+The influence of the variance of the tagging rate  is dependent on the mark rate.
+In particular, the relevant quantity is the rate at which adult fish in the release group are
+both tagged and marked, where we use ``marked'' to mean that they are able to be sampled in the 
+fishery (thus, with electronic tag detection this would mean that the fish carry a CWT, and
+for visually-sampled fisheries, this means that the fish has an ad-clip).  
 
+In applying PBT, typically all the members of a release group will be tagged by PBT, and then a random fraction $m$ of those
+will receive marks.  In the simulations the number of tagged and marked fish in the fishery is found by randomly assigning each of the $\sum_{i\in\mathcal{B}} W_i$ tagged fish to the marked category, independently, with probability $m$.  All of these fish are assumed to be sampled
+and then an expanded estimate $T_\mathrm{pbt}$ of the total number of release group fish in the fishery is found by multiplying that by 
+the expansion factor $1/(mf_\mathrm{pbt})$.
+
+In our simulations, we simulate the actual value of the mark and tag rates for CWTs in a similar fashion (by randomly
+assigning coded wire tagged fish to marked and unmarked categories) by assuming
+that a fraction $m$ of the tagged adult fish present in the fishery received marks.  This makes it easy to identify the additional variance in
+PBT sampling due to variance in family size.  But it should be kept in mind that, in many release groups, an effort is made to tag
+the marked component at a rate of 100\%.  All marked fish with CWTs are assumed to be sampled from the fishery
+and the expanded estimate $T_\mathrm{cwt}$ is obtained for each replicate by multiplying the
+number of recoveries by $1/(mp_\mathrm{cwt})$.
+
+ 
 \section{Interpretation of parameters $r$ and $\alpha$}
 
 The parameters $r$ and $\alpha$ are the two that directly affect variance in family size.  $r$ 
@@ -218,31 +255,45 @@ The interpretation of $\alpha$ will perhaps be even less familiar to most, and i
 be transparent how one should contextualize the joint effect of $r$ and $\alpha$ on the distribution
 of family sizes at the time of adult sampling.  To aid in interpretation of how much variance in
 family size is conferred by the combination of $r$ and $\alpha$ in any scenario, I estimate the
-effective size of the population for each scenario.  This is done by simulating family sizes $C_1,\ldots,C_S$
+effective size of the population for each scenario.  This is done by simulating the number of
+gene copies per family, $C_1,\ldots,C_S$,
 for a constant sized population from a multinomial distribution:
 \[
 (C_1,\ldots, C_S) \sim \mathrm{Mult}_S(2S, (q_1, \ldots, q_S))
 \]
-and then calculating the probability that two gene copies sampled from amongst those offspring
-are identical by descent as:
+and then calculating the probability that two gene copies sampled from amongst those offspring gene copies
+are identical by descent (IBD) as:
 \[
-P(\mathrm{IBD}) = \frac{1}{4}\sum_{i=1}^S \frac{C_i}{2S}\frac{C_i - 1}{2S - 1}.
+P(\mathrm{IBD}) = \frac{1}{4}\sum_{i=1}^S \frac{C_i}{2S}\frac{C_i - 1}{2S - 1},
 \]
+derived as follows: $\frac{C_i}{2S}$ is the probability that the first gene copy is sampled from family $i$;
+$\frac{C_i - 1}{2S - 1}$ is the probability that the second gene copy is sampled from family $i$; if those two
+gene copies are to be IBD, then they must both be from the same parent (probability 1/2) and they must be copies of
+the same gene within that parent (probability 1/2), which gives the term of 1/4.  
 $P(\mathrm{IBD})$ is recorded for each replicate at a particular value of $S$, $r$, and $\alpha$, the average
-of those values, $\widehat{P(\mathrm{IBD})}$, is taken and the effective size of the population is estimated
-by $N_e = [2\widehat{P(\mathrm{IBD})}]^{-1}$. 
+of those values, $\widehat{P(\mathrm{IBD})}$, is taken and the effective number of breeders is estimated
+by $N_b = [2\widehat{P(\mathrm{IBD})}]^{-1}$.   The effect of the parameters controlling
+variance in family size can thus be interpreted as the ratio of the effective number of spawners to the 
+actual number of spawners, $\frac{N_b}{2S}$.
+
+\textcolor{red}{Only a few estimates of the ratio of effective number of breeders to the census number of breeders ($N_b/N$) in salmon
+hatcheries are available.  \citet{Moyeretal2007} report estimates of between 0.76 and 0.84 for coho in two different 
+Oregon hatcheries.  For Chinook, Mike Ackerman provided us }
 
 \section{Simulations}
-Here I present simulations at 6 different values of $S = 10, 25, 50, 100, 250, 1000$.  For each value of $S$,
-I will assume two different values for the fraction of families that are genotyped: 80\% and 96\%; and 
-finally, to the preceding 12 conditions, I add two different scenarios of variance in family size. I call
-the first the ``Wright-Fisher'' scenario in which each family produces a Poisson distributed number of
+\subsection{Simulation 1}
+We first present simulations at 6 different values of $S = 10, 25, 50, 100, 250, 1000$.  For each value of $S$,
+we assume two different values for the number of $G$ out of $S$ that are genotyped: $G = \lfloor 0.8 S \rfloor$ and
+$G = \lfloor 0.96 S \rfloor$ and 
+we explore two different scenarios of variance in family size. The first is a scenario in which each family
+produces a Poisson-distributed number of
 juveniles at the release stage (equivalent to $\mu=3000$, and $r\rightarrow\infty$) and there is no
 additional variance due to differential family 
-survival, post-release (\ie $\alpha \rightarrow \infty$). The second scenario, called ``Ne50'', has
-$\mu = 3000$, $r = 30$, and $\alpha = 1$.  This scenario produces an $N_e/2S$ ratio that is close to
+survival, post-release (\ie $\alpha \rightarrow \infty$)---this is equivalent to reproduction in
+a ``Wright-Fisher'' population. The second scenario, has
+$\mu = 3000$, $r = 30$, and $\alpha = 1$, and produces an $N_b/(2S)$ ratio close to
 0.5.  In all simulations, $A_F$, the number of adults remaining at the time of recovery, was set to 
-be $10S$, or 5 times above replacement for the parents of the release group. One thousand replicate simulations were run for each of these 24 different combinations of simulation parameters. The resulting distribution of realized tagging
+be $10S$, or 5 times above replacement for the parents of the release group. One thousand replicate simulations were run for each of these 24 different combinations of simulation parameters. The resulting distribution of realized adult tagging
 rates ($\tilde{p}_\mathrm{pbt}$ and $\tilde{p}_\mathrm{cwt}$)
 are shown in Figures~\ref{fig:wf80}--\ref{fig:ne50-96}.
 
@@ -278,30 +329,117 @@ see caption of Figure~\protect\ref{fig:wf80}.}
 \label{fig:ne50-96}
 \end{figure}
 
-These simulations suggest to me that, if salmon populations reproduced in a Wright-Fisher fashion
-(\ie Poisson distribution of family sizes), then there would be little problem---the variation in
+These simulations show that, if salmon populations reproduced in a Wright-Fisher fashion
+(\ie Poisson distribution of family sizes), then the variation in
 realized tagging rates for PBT would be commensurate with those for CWTs.  However, salmon populations
 typically exhibit variance in reproductive success beyond that expected in a Wright-Fisher population, with
-$N_e/N$ ratios usually below 0.5.  In such cases with overdispersed variance in reproductive success,
+$N_b/(2S)$ ratios in  Oregon coho hatcheries reported to be between 0.76 and 0.84  \citet{Moyeretal2007}. 
+ In such cases with overdispersed variance in reproductive success,
 for release groups arising from few families ($<50$ families, for example),
 there is an appreciable increase in the variance of the realized tagged fraction of adults using PBT when
-not all of the parents were successfully genotyped.  If PBT tagging rates could always be assured of being
-100\% then this wouldn't be a problem, but I suspect that, more often than not,
-PBT tagging rates are $<100\%$.  The
-consequence of this for different applications needs to be assessed.   In some cases, the increase in tagging
-rate variance will likely by more than compensated for by increased recoveries, because of a higher tagging
-rate of many release groups.  But as Will points out, this will also require a higher marking rate in those
-groups, and it is not clear how that will work out.
+not all of the parents were successfully genotyped.  However,
+the consequence of this for different applications needs to be assessed. Accordingly a second set of simulations
+was conducted in which the goal was to assess the effect on expanded numbers of fish. 
 
-I would like to analyze available PBT data at hatcheries to get a good estimate of the actual degree
-of variance in reproductive success across hatcheries.  It will be particularly useful to have siutation in which
-the total number of families is known (rather than just the families that had at least one offspring
-recovered back at the hatchery.  Having that information will really help assess
-this issue.
+\subsection{Simulation~2}
+250 replicate simulations were performed for every combination of the following set of values:
+\begin{itemize}
+\item $S \in \{10, 15, 20, 25, 30, 40, 50, 75, 100, 150, 200, 250, 400, 700, 1000\}$
+\item $A_F = 5$
+\item $G \in \{\lfloor a S\rfloor\}$ where $a \in \{0.80, 0.82, \ldots, 0.98, 1.00\}$, and with $p_\mathrm{cwt}$ set to the same
+value as $\lfloor a S\rfloor$ in each case.
+\item $\mu = 3000$, $r = 30$, and $\alpha \in \{0.5, 0.75, 1.0, 1.5, 2, 5, 10, 50\}$, as well as an additional scenario corresponding to
+Wright-Fisher reproduction. 
+\item $m \in \{0.25, 0.5, 0.75, 1.0\}$
+\end{itemize}
+For each scenario, it was assumed that there was a fishery in which 50 fish from the release group were caught and all fish
+were sampled for marks, and fish with marks and tags (whether CWTs or PBT tags) were recovered and expanded back to
+$T_\mathrm{cwt}$ and $T_\mathrm{pbt}$ according to the type of tag simulated.  The correct estimate of the expanded 
+number of release group fish in the fishery is 50.  The number of tag recoveries expected in each simulation is
+$50 m \lfloor a S \rfloor$.
 
-\section{Analytical treatment of the simulations}
-Now that I have completed the simulations I see that it should be relatively painless to do an analytical treatment of the variance in 
-$p_\mathrm{pbt_a}$ and $p_\mathrm{cwt_a}$.  I haven't done that yet\ldots 
+Each of the different scenarios of family size variance produced a different ratio of $N_b/(2S)$ covering a broad range:
+$(0.34, 0.43, 0.50, 0.59, 0.66, 0.81, 0.88, 0.95, 1.00)$, we summarize the results in terms of these $N_b/(2S)$ ratios
+rather than in terms of $\alpha$, $\mu$, and $r$.
+
+Figure~\ref{fig:all_sds} summarizes the standard deviation of the realized PBT and CWT tagging rates across all the scenarios.
+\begin{sidewaysfigure}
+\includegraphics[width = .93\textwidth]{./images/tag_rate_standard_devs.pdf}
+\caption{The standard deviation of the realized tagging rate $\tilde{p}_\mathrm{pbt}$ and $\tilde{p}_\mathrm{cwt}$.  $x$ axis shows the
+expected tagged fraction $\lfloor G/S \rfloor$ in each simulation, $y$-axis gives the standard deviation over 1000 simulation replicates
+for each point.  Colors denote different $N_b/(2S)$ ratios for PBT (or they denote CWT tagging in the bottom line in every panel).  Different
+panels correspond to different numbers of $S$, as denote on the top of each panel.
+\label{fig:all_sds}}
+\end{sidewaysfigure}
+It is clear that the variance of the realized PBT tagging rate is always higher than that of the CWT tagging rate, except in the case where
+$N_b/(2S) = 1.0$, in which case the two are identical.  Standard deviation of $\tilde{p}_\mathrm{pbt}$ increases as $N_b/(2S)$ decreases and
+as $S$ decreases.  
+
+
+% m = 0.25
+\begin{sidewaysfigure}
+\includegraphics[width = .93\textwidth]{./images/sd_line_horns_m_0_25.pdf}
+\caption{The uncertainty around expanded estimates using PBT or CWTs when $m = 0.25$.  $x$ axis shows the
+expected tagged fraction $\lfloor G/S \rfloor$ in each simulation. Upon the $y$-axis is the number of fish from the
+release group in the fishery (shown as the black horizontal line) and the mean estimate of that number from each different set of 
+conditions plus or minus 2 standard deviations.  Thus, the vertical spread between lines of the same colour gives a representation
+of the uncertainty in the estimate of the expanded number of fish. Colors denote different $N_b/(2S)$ ratios for PBT, or denote
+the CWT estimate.  Different
+panels correspond to different numbers of $S$, as denote on the top of each panel.
+\label{fig:all_sds}}
+\end{sidewaysfigure}
+
+
+% m = 0.5
+\begin{sidewaysfigure}
+\includegraphics[width = .93\textwidth]{./images/sd_line_horns_m_0_5.pdf}
+\caption{The uncertainty around expanded estimates using PBT or CWTs when $m = 0.5$.  $x$ axis shows the
+expected tagged fraction $\lfloor G/S \rfloor$ in each simulation. Upon the $y$-axis is the number of fish from the
+release group in the fishery (shown as the black horizontal line) and the mean estimate of that number from each different set of 
+conditions plus or minus 2 standard deviations.  Thus, the vertical spread between lines of the same colour gives a representation
+of the uncertainty in the estimate of the expanded number of fish. Colors denote different $N_b/(2S)$ ratios for PBT, or denote
+the CWT estimate.  Different
+panels correspond to different numbers of $S$, as denote on the top of each panel.
+\label{fig:all_sds}}
+\end{sidewaysfigure}
+
+% m = 0.75
+\begin{sidewaysfigure}
+\includegraphics[width = .93\textwidth]{./images/sd_line_horns_m_0_75.pdf}
+\caption{The uncertainty around expanded estimates using PBT or CWTs when $m = 0.75$.  $x$ axis shows the
+expected tagged fraction $\lfloor G/S \rfloor$ in each simulation. Upon the $y$-axis is the number of fish from the
+release group in the fishery (shown as the black horizontal line) and the mean estimate of that number from each different set of 
+conditions plus or minus 2 standard deviations.  Thus, the vertical spread between lines of the same colour gives a representation
+of the uncertainty in the estimate of the expanded number of fish. Colors denote different $N_b/(2S)$ ratios for PBT, or denote
+the CWT estimate.  Different
+panels correspond to different numbers of $S$, as denote on the top of each panel.
+\label{fig:all_sds}}
+\end{sidewaysfigure}
+
+
+
+% m = 1.00
+\begin{sidewaysfigure}
+\includegraphics[width = .93\textwidth]{./images/sd_line_horns_m_1.pdf}
+\caption{The uncertainty around expanded estimates using PBT or CWTs when $m = 1.00$.  $x$ axis shows the
+expected tagged fraction $\lfloor G/S \rfloor$ in each simulation. Upon the $y$-axis is the number of fish from the
+release group in the fishery (shown as the black horizontal line) and the mean estimate of that number from each different set of 
+conditions plus or minus 2 standard deviations.  Thus, the vertical spread between lines of the same colour gives a representation
+of the uncertainty in the estimate of the expanded number of fish. Colors denote different $N_b/(2S)$ ratios for PBT, or denote
+the CWT estimate.  Different
+panels correspond to different numbers of $S$, as denote on the top of each panel.
+\label{fig:all_sds}}
+\end{sidewaysfigure}
+
+
+Need to describe the results\ldots.
+
+Note that if the fishery is not sampled for marks at 100\% then that would need to be incorporated too, but clearly can be.
+
+
+\section{Effective size of hatchery populations}
+
+Would like to include a short analysis of Chinook data from Idaho showing $N_b/(2S)$ ratios of about 0.34 to 0.5.
 
 \section{Actual sizes of release groups}
 To know how much of an issue this is going to be we can look at the sizes of all the different
@@ -344,6 +482,6 @@ groups, this could present a challenge to PBT, and definitely warrants further d
 
 
 
-\bibliography{anderson}
+\bibliography{../bibstuff/pbtfeas}
 \bibliographystyle{mychicago}
  \end{document}
