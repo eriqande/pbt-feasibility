@@ -1,3 +1,18 @@
+% Notes:
+%
+% Consider more the issue of fixed vs estimated G. 
+ 
+% A sentence about assessing the survival frates of different experimental release groups.
+% and the need for many families in each release group there.
+%
+% Change "fishery" to recovery areas or recovery strata, WHEN APPROPRIATE. Also designate things
+% as Ocean or Freshwater fisheries.  Also, check for the word "catch"  (consider "expanded number")...
+%
+% change abstract to summary and don't indent it.  Toss the TOC.
+%
+%
+
+
 \documentclass[11pt]{article}
 \usepackage{graphicx}
 \usepackage{amssymb}
@@ -9,6 +24,10 @@
 \usepackage{xspace}
 \usepackage{color}
 \usepackage{rotating}
+\usepackage{times}
+%\usepackage{fontspec}
+
+%\fontspec{Andale Mono}
 
 %% some handy things for making bold math
 \def\bm#1{\mathpalette\bmstyle{#1}}
@@ -362,7 +381,7 @@ tagged or not) in the catch.  Therefore, to understand the consequences of taggi
 variation on the uncertainty of release-group-specific estimates of total fish caught in a fishery, it is necessary to understand the 
 sampling context in which tagged fish are recovered. Simulation~2 attempts to provide that context.  
 
-\subsection{Simulating expanded catch estimates}
+\subsection{Simulating expanded sample estimates}
 
 In Simulation~2, under the PBT scenario, each release group is, as before, descended from $S$ families, of which $G$ are successfully tagged.  However, a fraction
 $c$ of the release group is marked in such a way as to be subject to sampling.  In the simulated fishery, there are $N_C$ fish from
@@ -595,7 +614,7 @@ in marine fisheries, though there are some values near 1.0.
 \begin{figure}
 \centering
 \includegraphics[width = \textwidth]{./images/m_histo_chinook.pdf}
-\caption{Histograms showing the number of recoveries having different values of $m$.  The different
+\caption{Histograms showing the number of fishery recoveries having different values of $m$.  The different
 panels show recoveries by different agencies.  The recoveries are colored according to the 
 state of their release.}
 \end{figure}
