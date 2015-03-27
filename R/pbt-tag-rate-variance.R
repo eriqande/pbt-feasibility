@@ -10,24 +10,33 @@ library(parallel)
 #' function to simulate one rep for pbt tag rate variance simulation study
 #' 
 #' @param  pars A named list of the parameter values:
-#'    S   number of families
-#'    G   number of families successfully genotyped
-#'    mu  mean number of juveniles per family at release stage
-#'    r   dispersion parameter of neg binom for number of juvies at release
-#'    A_F adult fraction: Take floor(2 * S * A_F) to get the number of adults at the time of adult samlpling
-#'    a   the parameter of the Dirichlet distribution controlling variance in family-specific survival rate
-#'    m   the mark rate  (fraction of fish in the release group that are marked)
-#'    n_fish_present  The number of fish to consider present in a hypothetical fishery that we 
-#'    will sample marked fish from.
+#' @param   S   number of families
+#' @param    G   number of families successfully genotyped
+#' @param    mu  mean number of juveniles per family at release stage
+#' @param    r   dispersion parameter of neg binom for number of juvies at release
+#' @param    A_F adult fraction: Take floor(2 * S * A_F) to get the number of adults at the time of adult samlpling
+#' @param    a   the parameter of the Dirichlet distribution controlling variance in family-specific survival rate
+#' @param    m   the tag sample rate. (Probability that a tagged (or should-be-tagged fish will be sampled). 
+#' In the right up this is c * v
+#' @param    n_fish_present  The number of fish to consider present in a hypothetical fishery that we 
+#' will sample marked fish from.
+#' @param    N_C  total number of fish from the release group in the catch
 pbt_tag_rate_rep <- function(pars) {
   with(pars,{
     
     # set the number of adults
     N_A <- floor(2 * S * A_F)
+    if(N_C > 0) {  # some stuff here to set N_C for simulation number 2.
+      N_A <- N_C
+    }
     # deal with equivalent CWT stuff
     p_cwt = G/S   # the comparable CWT tag rate
     n_cwt_a <- rbinom(n = 1, size = N_A, prob = p_cwt)
     p_cwt_a <- n_cwt_a / N_A # effective tagged fraction of adults
+    
+    # this is number of cwts recovered in simulation 2
+    n_cwt2 <- rbinom(n = 1, size = N_C, prob = m)
+    N_hat_cwt <- n_cwt2 / m
     
     # and here we want to get the correct (but never knowable) expansion factor for marking at a rate m
     # (in a case where p_cwt of the marked fish are tagged)
@@ -48,6 +57,10 @@ pbt_tag_rate_rep <- function(pars) {
     q <- Y * J / sum(Y * J)
     W <- rmultinom(n = 1, size = N_A, prob = q)
     p_pbt_a = sum(W[B]) / sum(W)
+    
+    # now we can simulate p_pbt2 for simulation #2
+    n_pbt2 <- rbinom(n = 1, size = N_C, prob = p_pbt_a * m)
+    N_hat_pbt <- n_pbt2 * S / (m * G)
     
     # now, we should simulate the observed fraction that are marked and tagged out of all of
     # the fish that are there, because that is the number that one would expand by to get the
@@ -71,10 +84,12 @@ pbt_tag_rate_rep <- function(pars) {
     
     as.data.frame(c(pars,
                     #non_zero_fam_sd = non_zero_fam_sd, non_zero_fam_mean = non_zero_fam_mean,
-                    N_A = N_A, J_sd = sd(J), p_cwt = p_cwt, p_cwt_a = p_cwt_a, p_pbt = p_pbt, 
+                    N_A = N_A, N_C = N_C, J_sd = sd(J), p_cwt = p_cwt, p_cwt_a = p_cwt_a, p_pbt = p_pbt, 
                     p_pbt_a = p_pbt_a, pIBD = pIBD, NeI = NeI, p_pbt_am = p_pbt_am,
                     p_cwt_am = p_cwt_am, n_fish_present = n_fish_present, cwt_mt_recovered = cwt_mt_recovered,
-                    pbt_mt_recovered = pbt_mt_recovered))
+                    pbt_mt_recovered = pbt_mt_recovered,
+                    n_pbt2 = n_pbt2, n_cwt2 = n_cwt2,
+                    N_hat_pbt = N_hat_pbt, N_hat_cwt = N_hat_cwt))
   })
 }
 
@@ -82,19 +97,21 @@ pbt_tag_rate_rep <- function(pars) {
 #### Run the set of simulations at 24 combinations of values ####
 
 # here are the values to run things at:
-NumReps <- 250
-Svals <- c(10, 15, 20, 25, 30, 40, 50, 75, 100, 150, 200, 250, 400, 700, 1000)
+NumReps <- 20
+Svals <- c(10, 20, 30, 50, 100, 200, 400, 1000)
 A_Fvals <- 5
+N_Cvals <- 50
 Gprops <- seq(0.8, 1.0, by = 0.02)
-disp_vals <- lapply(c(0.5, 0.75, 1.0, 1.5, 2, 5, 10, 50), function(x) c(mu = 3000, r = 30, a = x))
+disp_vals <- lapply(c(0.3, 0.5, 1.0, 2, 10), function(x) c(mu = 3000, r = 30, a = x))
 disp_vals[[length(disp_vals) + 1]] <- c(mu = 3000, r = 10^8, a = 10000) # add the (nearly) wright-fisher case in there
-mVals <- c(0.25, 0.5, 0.75, 1.0)
+mVals <- c(0.125, 0.25, 0.5, 0.75, 1.0)
 NFP_vals <- 50
 
 
 # Expand grid and mclapply over all the combinations, so we can do it in parallel:
 combos <- expand.grid(S = Svals, A_F = A_Fvals, Gp = Gprops, disp = disp_vals, m = mVals,
-                      n_fish_present = NFP_vals)
+                      n_fish_present = NFP_vals, N_C = N_Cvals)
+set.seed(15)
 big_list <- mclapply(1:nrow(combos), function(x) {
   spars <- list(
     S = combos[x, "S"],
@@ -104,6 +121,7 @@ big_list <- mclapply(1:nrow(combos), function(x) {
     A_F = combos[x, "A_F"],
     a = unname(combos[x, "disp"][[1]]["a"]),
     m = combos[x, "m"],
+    N_C = combos[x, "N_C"],
     n_fish_present = combos[x, "n_fish_present"]
   )
   do.call(rbind, lapply(1:NumReps, function(y) pbt_tag_rate_rep(spars)))
@@ -126,14 +144,44 @@ big_frame2 <- big_frame %>%
 # then they end up having too many outliers.  Just filter it down to ones that have NeN factor = 1.00
 big_frame3 <- big_frame2 %>%
   filter(NeN_factor == "1.00") %>%
-  group_by(S, G, A_F, N_A, m) %>%
-  select(p_cwt_a, p_cwt_am, cwt_mt_recovered) %>%
-  rename(p_pbt_a = p_cwt_a, p_pbt_am = p_cwt_am, pbt_mt_recovered = cwt_mt_recovered) %>%
+  group_by(S, G, N_C, m) %>%
+  select(n_cwt2, N_hat_cwt) %>%
+  rename(n_pbt2 = n_cwt2, N_hat_pbt = N_hat_cwt) %>%
   mutate(NeN_factor = "CWT") %>%
-  rbind_list(., big_frame2) %>%
-  mutate(expando_pbt = 10/p_pbt_am) %>%
-  mutate(expando_estimate = pbt_mt_recovered / (m * (G/S)))
+  rbind_list(., big_frame2)  %>%
+  rename(N_hat = N_hat_pbt, Nb_over_2S = NeN_factor)
 
+# %>%
+#   mutate(expando_pbt = 10/p_pbt_am) %>%
+#   mutate(expando_estimate = pbt_mt_recovered / (m * (G/S)))
+
+
+#### Now, compute the mean and standard deviation of the expando_estimates ####
+sds_and_means <- big_frame3 %>%
+  group_by(S, G, N_C, Nb_over_2S, m) %>%
+  summarise(mean_N_hat = mean(N_hat), sd_of_N_hat = sd(N_hat))
+
+
+# Let's make a similar plot, but put lines top and bottom of different colors on the
+# ends of the standard deviation range.
+lapply(unique(sds_and_means$m), function(x) {
+  
+  tmp <- sds_and_means %>% filter(m == x) 
+  nc_static <- 50  # this would have to be changed if N_C were changed
+  ggplot(tmp, aes(x = G/S, y = N_hat, colour = Nb_over_2S)) + 
+    geom_abline(intercept = nc_static, slope = 0) + # put this on the bottom cuz CWT will overwrite it.
+    geom_line(aes(y = N_C - 2 * sd_of_N_hat)) +
+    geom_line(aes(y = N_C + 2 * sd_of_N_hat)) +
+    ylim(0, 100) +
+    facet_wrap(~ S, ncol = 4) +
+    scale_color_manual(values = rainbow(8))
+  
+  ggsave(paste("sd_line_horns_m_", x, ".pdf", sep = ""), width = 14, height = 10)
+})
+
+
+
+########   BONEYARD #######
 
 
 # just some testing
@@ -186,8 +234,24 @@ lapply(unique(big_frame3$S), function(x) {
 #### Now, compute the mean and standard deviation of the expando_estimates ####
 sds_and_means <- big_frame3 %>%
   group_by(S, G, NeN_factor, m) %>%
-  summarise(mean_expansion = mean(expando_estimate), sd_expansion = sd(expando_estimate))
+  summarise(mean_N_hat = mean(N_hat_pbt), sd_of_N_hat = sd(N_hat_pbt))
 
+
+# Let's make a similar plot, but put lines top and bottom of different colors on the
+# ends of the standard deviation range.
+lapply(unique(sds_and_means$m), function(x) {
+  
+  tmp <- sds_and_means %>% filter(m == x) 
+  
+  ggplot(tmp, aes(x = G/S, y = sd_expansion, colour = NeN_factor)) + 
+    geom_line(aes(y = 50 - 2 * sd_expansion)) +
+    geom_line(aes(y = 50 + 2 * sd_expansion)) +
+    ylim(0, 100) +
+    geom_abline(intercept = 50, slope = 0) +
+    facet_wrap(~ S, ncol = 5) 
+  
+  ggsave(paste("sd_line_horns_m_", x, ".pdf", sep = ""), width = 14, height = 10)
+})
 
 # and make a nice line plot
 lapply(unique(sds_and_means$m), function(x) {
@@ -340,7 +404,6 @@ make_rel_group_sizes_table <- function(Species = "Chinook", smolts_per_female = 
   tab
 }
 
-write.table(tab, sep = "  &  ", eol = "\\\\\n", row.names = FALSE, quote = FALSE)
 
 CohoTable <- make_rel_group_sizes_table("Coho", 1800)
 ChinookTable <- make_rel_group_sizes_table("Chinook", 3800)
@@ -350,6 +413,10 @@ ChinookTable <- ChinookTable[!is.na(ChinookTable$num_family_categories), ]
 
 write.csv(CohoTable, file = "CohoTable.csv")
 write.csv(ChinookTable, file = "ChinookTable.csv")
+
+
+write.table(ChinookTable, sep = "  &  ", eol = "\\\\\n", row.names = FALSE, quote = FALSE)
+write.table(CohoTable, sep = "  &  ", eol = "\\\\\n", row.names = FALSE, quote = FALSE)
 
 #### LEFTOVERS!here is an example of running it ####
 # here is an example pars:
