@@ -172,6 +172,9 @@ lapply(unique(sds_and_means$m), function(x) {
     geom_abline(intercept = nc_static, slope = 0) + # put this on the bottom cuz CWT will overwrite it.
     geom_line(aes(y = N_C - 2 * sd_of_N_hat)) +
     geom_line(aes(y = N_C + 2 * sd_of_N_hat)) +
+    geom_point(aes(y = N_C - 2 * sd_of_N_hat), size = 1.4) +
+    geom_point(aes(y = N_C + 2 * sd_of_N_hat), size = 1.4) +
+    geom_point(aes(y = mean_N_hat), size = 1.6) +
     ylim(0, 100) +
     facet_wrap(~ S, ncol = 4) +
     scale_color_manual(values = rainbow(8))
