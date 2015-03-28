@@ -1,17 +1,3 @@
-% Notes:
-%
-% Consider more the issue of fixed vs estimated G. 
- 
-% A sentence about assessing the survival frates of different experimental release groups.
-% and the need for many families in each release group there.
-%
-% Change "fishery" to recovery areas or recovery strata, WHEN APPROPRIATE. Also designate things
-% as Ocean or Freshwater fisheries.  Also, check for the word "catch"  (consider "expanded number")...
-%
-% change abstract to summary and don't indent it.  Toss the TOC.
-%
-%
-
 
 \documentclass[11pt]{article}
 \usepackage{graphicx}
@@ -25,9 +11,6 @@
 \usepackage{color}
 \usepackage{rotating}
 \usepackage{times}
-%\usepackage{fontspec}
-
-%\fontspec{Andale Mono}
 
 %% some handy things for making bold math
 \def\bm#1{\mathpalette\bmstyle{#1}}
@@ -64,12 +47,16 @@ and Coded-Wire  Tagging  Rates}
 %    110 Shaffer Road,
 %    Santa Cruz, CA 95060}
 %}
+\date{}
+
 \begin{document}
 
 \maketitle
 
 
-\begin{abstract}
+
+
+\section{Summary}
 Realized rates of tagging are investigated for scenarios using parentage-based tagging (PBT)
 and coded wire tags (CWT).  
 Using CWTs the fraction of fish tagged can usually be accurately
@@ -83,15 +70,11 @@ expected rate because different families produce different numbers of offspring 
 at different rates to time of tagging.  Additional variation is possible due to differential
 survival of family groups to the time of adult sampling.  These issues, as well as their
 consequences for the variance in the estimated expanded number of recoveries, are explored
-through simulation.  The indicate that it is best to maintain a high ($>96\%$) fraction
+through simulation.  They indicate that it is best to maintain a high ($>96\%$) fraction
 of successfully-genotyped families, especially when the number of parents producing the release
-group is small ($<20$) and the product of the sampling rate in the fishery
-and the marking rate in the release group is high ($\geq 75\%$).
+group is small ($<30$) and the product of the sampling rate in the recovery stratum
+and the marking rate in the release group is high ($\geq 50\%$).
 
-\end{abstract}
-
-
-\tableofcontents
 
 \section{Introduction}
 We develop a simple system of simulations to describe, explore, and understand
@@ -99,11 +82,11 @@ variation in the realized tagging rates achieved when using parentage-based tagg
 or coded-wire tags (CWTs) for hatchery-raised salmon.  Here we describe simulation routines
 and the assumptions made in them for both CWTs and PBT.  We subsequently investigate the effective
 number of breeders in hatchery populations, and the distribution
-of release group sizes, marking rates and fishery sampling rates to understand the potential
+of release group sizes, marking rates and sampling rates to understand the potential
 consequences of this tagging rate variation.
 
 We pursue two (related) simulations.  In the first, we focus  exclusively on the
-variance in the tagging rate itself.  In the second we also include fishery sampling
+variance in the tagging rate itself.  In the second we also include recovery-area sampling
 aspects to assess the practical importance of PBT tagging rate variation.
 
 \section{Simulation 1. Tagging rate variation}
@@ -373,26 +356,26 @@ make it clear that for a given total tagging rate of a release group, PBT will a
 variance in the realized adult tagging rate than CWTs.  However, CWTs are not always applied to
 100\% of a release group.  Rather, CWTs are often applied to only a fraction of a release group, and then
 only a fraction of a fishery or the escapement might be sampled for tags.
-Recoveries of tags (from a fishery, for example) are expanded, by muliplying by the reciprocal of the
-catch sampling rate, into a representation of the number of tagged fish from the release group present in the
-total catch from the fishery.  That number might be expanded further, multiplying by the reciprocal of the
+Recoveries of tags from a given recovery stratum are expanded, by muliplying by the reciprocal of the
+sampling rate, into a representation of the number of tagged fish from the release group present in the
+total recovery stratum.  That number might be expanded further, multiplying by the reciprocal of the
 tagging rate, to give an estimate of the total number of fish from the release group (whether
-tagged or not) in the catch.  Therefore, to understand the consequences of tagging rate
-variation on the uncertainty of release-group-specific estimates of total fish caught in a fishery, it is necessary to understand the 
+tagged or not) in the recovery stratum.  Therefore, to understand the consequences of tagging rate
+variation on the uncertainty of release-group-specific estimates of total fish present in a recovery stratum, it is necessary to understand the 
 sampling context in which tagged fish are recovered. Simulation~2 attempts to provide that context.  
 
 \subsection{Simulating expanded sample estimates}
 
 In Simulation~2, under the PBT scenario, each release group is, as before, descended from $S$ families, of which $G$ are successfully tagged.  However, a fraction
-$c$ of the release group is marked in such a way as to be subject to sampling.  In the simulated fishery, there are $N_C$ fish from
-the release group in the total catch, but only a fraction $v$ of the total catch is sampled for marks.  Accordingly, the expected fraction of fish 
+$c$ of the release group is marked in such a way as to be subject to sampling.  In the simulated recovery stratum, there are $N_C$ fish from
+the release group in total, but only a fraction $v$ of the total is sampled for marks.  Accordingly, the expected fraction of fish 
 from the release group expected to yield tag recoveries is $\frac{cvG}{S}$.   If $n_\mathrm{pbt}$ tags were recovered,
 the expanded estimate of $N_C$, the
-total number of fish from the release group in the catch, would be $\hat{N}_\mathrm{pbt} = \frac{n_\mathrm{pbt}S}{cvG}$.
+total number of fish from the release group in the recovery stratum, would be $\hat{N}_\mathrm{pbt} = \frac{n_\mathrm{pbt}S}{cvG}$.
 The PBT scenario is compared against a CWT scenario in which a fraction $c$ of the release group is marked, and 100\% of those marked fish
-carry CWTs (i.e., assume for simplicity that the rate of tag shedding is 0).  $N_C$ fish from the release group appear in the total catch,
-and a fraction $v$ of the fishery is sampled for marks, yielding $n_\mathrm{cwt}$ recoveries and an expanded estimate of
-$\hat{N}_\mathrm{cwt} = \frac{n_\mathrm{cwt}}{cv}$ fish from the release group in the total catch.  
+carry CWTs (i.e., assume for simplicity that the rate of tag shedding is 0).  $N_C$ fish from the release group appear in the total recovery stratum,
+and a fraction $v$ of the total is sampled for marks, yielding $n_\mathrm{cwt}$ recoveries and an expanded estimate of
+$\hat{N}_\mathrm{cwt} = \frac{n_\mathrm{cwt}}{cv}$ fish from the release group in the total recovery stratum.  
 
 
 It is worth mentioning that while we refer to fish as being ``marked'' these simulations apply equally well to both visually
@@ -405,11 +388,11 @@ carrying CWTs.
 
 
 The effect of $c$ and $v$ on the estimates always acts through their product, and, in Simulation~2 we can
-simply model their product $m = cv$---the fraction of the release group in the catch that is tagged and subject to sampling.
+simply model their product $m = cv$---the fraction of the release group in the recovery stratum that is tagged and subject to sampling.
 For PBT simulation replicates we first simulate $\tilde{p}_\mathrm{pbt}$ as in Simulation~1, and then we
 simulate the number of PBT-tagged fish recoveries as $n_\mathrm{pbt}\sim\mathrm{Binomial}(N_C, m \tilde{p}_\mathrm{pbt})$, from which 
 we compute and record $\hat{N}_\mathrm{pbt} = \frac{n_\mathrm{pbt}S}{mG}$.  For the CWT simulation replicates, we simulate the number of sampled
-and tagged fish in the total catch as $n_\mathrm{cwt} \sim \mathrm{Binomial}(N_C, m)$, and from that compute
+and tagged fish in the total recovery stratum as $n_\mathrm{cwt} \sim \mathrm{Binomial}(N_C, m)$, and from that compute
 $\hat{N}_\mathrm{cwt} = \frac{n_\mathrm{cwt}}{m}$.
  
  
@@ -475,7 +458,7 @@ likely to be encountered in practice.  Such values are explored in the following
 \includegraphics[width = .93\textwidth]{./images/sd_line_horns_m_0_125.pdf}
 \caption{The uncertainty around expanded estimates using PBT or CWTs when $m = 0.125$.  $x$ axis shows the
 expected tagged fraction $\lfloor G/S \rfloor$ in each simulation. Upon the $y$-axis is the number of fish from the
-release group in the fishery (shown as the black horizontal line) and the mean estimate of that number from each different set of 
+release group in the recovery stratum (shown as the black horizontal line) and the mean estimate of that number from each different set of 
 conditions plus or minus 2 standard deviations.  Thus, the vertical spread between lines of the same colour gives a representation
 of the uncertainty in the estimate of the expanded number of fish. Colors denote different $N_b/(2S)$ ratios for PBT, or denote
 the CWT estimate.  Different
@@ -489,8 +472,8 @@ panels correspond to different numbers of $S$, as denoted on the top of each pan
 \begin{sidewaysfigure}
 \includegraphics[width = .93\textwidth]{./images/sd_line_horns_m_0_25.pdf}
 \caption{The uncertainty around expanded estimates using PBT or CWTs when $m = 0.25$.  $x$ axis shows the
-expected tagged fraction $\lfloor G/S \rfloor$ in each simulation. Upon the $y$-axis is the number of fish from the
-release group in the fishery (shown as the black horizontal line) and the mean estimate of that number from each different set of 
+expected tagged fraction $\lfloor G/S \rfloor$ in each simulation. Upon the $y$-axis is the total number of fish from the
+release group in the recovery stratum (shown as the black horizontal line) and the mean estimate of that number from each different set of 
 conditions plus or minus 2 standard deviations.  Thus, the vertical spread between lines of the same colour gives a representation
 of the uncertainty in the estimate of the expanded number of fish. Colors denote different $N_b/(2S)$ ratios for PBT, or denote
 the CWT estimate.  Different
@@ -503,8 +486,8 @@ panels correspond to different numbers of $S$, as denoted on the top of each pan
 \begin{sidewaysfigure}
 \includegraphics[width = .93\textwidth]{./images/sd_line_horns_m_0_5.pdf}
 \caption{The uncertainty around expanded estimates using PBT or CWTs when $m = 0.5$.  $x$ axis shows the
-expected tagged fraction $\lfloor G/S \rfloor$ in each simulation. Upon the $y$-axis is the number of fish from the
-release group in the fishery (shown as the black horizontal line) and the mean estimate of that number from each different set of 
+expected tagged fraction $\lfloor G/S \rfloor$ in each simulation. Upon the $y$-axis is the total number of fish from the
+release group in the recovery stratum (shown as the black horizontal line) and the mean estimate of that number from each different set of 
 conditions plus or minus 2 standard deviations.  Thus, the vertical spread between lines of the same colour gives a representation
 of the uncertainty in the estimate of the expanded number of fish. Colors denote different $N_b/(2S)$ ratios for PBT, or denote
 the CWT estimate.  Different
@@ -516,8 +499,8 @@ panels correspond to different numbers of $S$, as denoted on the top of each pan
 \begin{sidewaysfigure}
 \includegraphics[width = .93\textwidth]{./images/sd_line_horns_m_0_75.pdf}
 \caption{The uncertainty around expanded estimates using PBT or CWTs when $m = 0.75$.  $x$ axis shows the
-expected tagged fraction $\lfloor G/S \rfloor$ in each simulation. Upon the $y$-axis is the number of fish from the
-release group in the fishery (shown as the black horizontal line) and the mean estimate of that number from each different set of 
+expected tagged fraction $\lfloor G/S \rfloor$ in each simulation. Upon the $y$-axis is the total number of fish from the
+release group in the recovery stratum (shown as the black horizontal line) and the mean estimate of that number from each different set of 
 conditions plus or minus 2 standard deviations.  Thus, the vertical spread between lines of the same colour gives a representation
 of the uncertainty in the estimate of the expanded number of fish. Colors denote different $N_b/(2S)$ ratios for PBT, or denote
 the CWT estimate.  Different
@@ -532,7 +515,7 @@ panels correspond to different numbers of $S$, as denoted on the top of each pan
 \includegraphics[width = .93\textwidth]{./images/sd_line_horns_m_1.pdf}
 \caption{The uncertainty around expanded estimates using PBT or CWTs when $m = 1.00$.  $x$ axis shows the
 expected tagged fraction $\lfloor G/S \rfloor$ in each simulation. Upon the $y$-axis is the number of fish from the
-release group in the fishery (shown as the black horizontal line) and the mean estimate of that number from each different set of 
+release group in the recovery stratum (shown as the black horizontal line) and the mean estimate of that number from each different set of 
 conditions plus or minus 2 standard deviations.  Thus, the vertical spread between lines of the same colour gives a representation
 of the uncertainty in the estimate of the expanded number of fish. Colors denote different $N_b/(2S)$ ratios for PBT, or denote
 the CWT estimate.  Different
@@ -614,10 +597,14 @@ in marine fisheries, though there are some values near 1.0.
 \begin{figure}
 \centering
 \includegraphics[width = \textwidth]{./images/m_histo_chinook.pdf}
-\caption{Histograms showing the number of fishery recoveries having different values of $m$.  The different
+\caption{Histograms showing the number of marine fishery recoveries having different values of $m$.  The different
 panels show recoveries by different agencies.  The recoveries are colored according to the 
 state of their release.}
+\label{fig:mhists}
 \end{figure}
+It should be kept in mind that escapement sampling typically occurs at a higher level than fishery sampling. So,
+values of $m$ for escapement samples (especially terminal samples at the hatchery) are likely to be higher than
+in the marine fisheries of Figure~\ref{fig:mhists}.
   
 \subsection{Fraction of families successfully tagged}
 It is clear that keeping the successful tagging rate of families as high as possible is important for PBT.  One important
@@ -631,7 +618,8 @@ of single parents or parent pairs.
 \caption{Expected family tagging rates as a function of the rate of successful individual genotyping
 under two methods of parentage assignment---single parent and parent pair assignment.  Vertical blue lines
 depict the genotyping success rates achieved over 5 years in Chinook and steelhead in the Snake River
-PBT program.  }
+PBT program.}
+\label{fig:succ_rate}
 \end{figure}
 
 If one can only make parent-pair assignments accurately, then the number of successfully-tagged
@@ -646,6 +634,23 @@ rate of 98.43\%.  During the same period 26,908 of 27,565 steelhead (97.62\%) we
 rates in these program, using parent-pair assignments is thus 0.969, and 0.953, respectively.  Using single parent assignments, 
 the expected family tagging rates would both be 0.9998 and 0.9994.  
 
+It is worth noting that, because the tagging rate is constrained to be less than or equal to one, an expected tagging rate very 
+close to 1 implies that the actual tagging rate must almost always be close to one.  
+This is relevant in consideration of our assumption
+throughout the simulations that $G$ is known without error. Typically $G$ would only be known without error if all the
+matings contributing to a release group were recorded, so that each family could be identified as tagged or not, according to
+whether or not one of the parents in it was successfully genotyped.
+However, if the expected family tagging rates are very close to 1.0, then it is necessarily the case that
+the actual tagging rate will, with high probability, also be 
+close to one. Therefore, if a PBT program were using single-parent assignments and
+obtaining scorable genotypes from the
+broodstock at the same rate that has been achieved for five years in the Idaho program, then
+(so long as the program was not mating only a single male to each of many tens of females) it would not be necessary
+to record matings at the hatchery, and still the
+resulting uncertainty in $G$ would be negligible.
+
+
+
 \section{Conclusions}
 
 Variance in PBT tagging rates is most likely to decrease accuracy of PBT-based estimates of expanded fish numbers
@@ -653,7 +658,7 @@ when all four of the following conditions coincide:
 \begin{enumerate}
 \item Release groups are composed of offspring of fewer than 30 families,
 \item The $N_b/(2S)$ ratio in the hatchery is lower than 0.7,
-\item A fraction higher than 50\% of all the fish from a release group in a fishery are expected to be sampled,
+\item A fraction higher than 50\% of all the fish from a release group in a recovery stratum are expected to be sampled,
 \item The genotyping success rates is low enough that fewer than 96\% of families are successfully tagged.
 \end{enumerate}
 A review of these quantities in existing programs suggest that condition~1 is often encountered, 2 is usually encountered, 3 is infrequently 
