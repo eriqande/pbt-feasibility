@@ -39,8 +39,7 @@
 \parindent = 0.0in
 
 
-\title{Variation in Parentage-Based Tagging \\
-and Coded-Wire  Tagging  Rates}
+\title{Variation in parentage-based tagging and coded-wire tagging rates, and its consequences for the variance of sample-expanded tag recovery estimates}
 %\author{Eric C. Anderson\thanks{
 %    Fisheries Ecology Division, 
 %    Southwest Fisheries Science Center, 
@@ -60,17 +59,17 @@ and Coded-Wire  Tagging  Rates}
 Realized rates of tagging are investigated for scenarios using parentage-based tagging (PBT)
 and coded wire tags (CWT).  
 Using CWTs the fraction of fish tagged can usually be accurately
-estimated at the time of tagging/release, though there will be some variation in the realized
+estimated at the time of release, though there will be some variation in the realized
 proportion of tagged versus untagged fish at the time of adult sampling.  In a PBT
 scenario, the {\em expected} fraction of fish tagged at the time of tagging can be
 estimated from the number of successfully-genotyped families that
 contributed to the release group.  However, unless 100\% of the families producing the release
 group are successfully genotyped, the realized PBT tagging rate can differ from the
 expected rate because different families produce different numbers of offspring that survive
-at different rates to time of tagging.  Additional variation is possible due to differential
-survival of family groups to the time of adult sampling.  These issues, as well as their
-consequences for the variance in the estimated expanded number of recoveries, are explored
-through simulation.  They indicate that it is best to maintain a high ($>96\%$) fraction
+at different rates from mating to the time of release.  Additional variation is possible due to differential
+survival of family groups fromt the time of release to the time of adult recovery sampling.  These issues, as well as their
+consequences for the variance of sample-expanded tag recovery estimates, are explored
+through simulation.  The results indicate that it is best to maintain a high ($>96\%$) fraction
 of successfully-genotyped families, especially when the number of parents producing the release
 group is small ($<30$) and the product of the sampling rate in the recovery stratum
 and the marking rate in the release group is high ($\geq 50\%$).
@@ -86,8 +85,8 @@ of release group sizes, marking rates and sampling rates to understand the poten
 consequences of this tagging rate variation.
 
 We pursue two (related) simulations.  In the first, we focus  exclusively on the
-variance in the tagging rate itself.  In the second we also include recovery-area sampling
-aspects to assess the practical importance of PBT tagging rate variation.
+variance in the tagging rate itself.  In the second we examine the effect of this
+variation on sample-expanded tag recovery estimates to assess the practical importance of PBT tagging rate variation.
 
 \section{Simulation 1. Tagging rate variation}
 
@@ -104,7 +103,7 @@ that the CWT tagging rate, $p_\mathrm{cwt}$, is known without error at the time 
 the rate of tag shedding has been accounted for in it. 
 
 Most CWT recaptures occur in adult fish.  Each tagged fish at the time of recovery can be
-expanded by $1/p_\mathrm{cwt}$ into an estimate of the total number of impacts that the tag recovery represents.
+expanded by $1/p_\mathrm{cwt}$ into an estimate of the total number of release group fish (tagged and untagged)  that the tag recovery represents.
 Usually, $p_\mathrm{cwt}$ will provide a good estimate of the fraction of adult fish from the release group
 that are tagged at the time of recovery, a proportion we will call the {\em realized} tagged
 fraction, $\tilde{p}_\mathrm{cwt}$.  It should be clear that the realized
@@ -115,10 +114,10 @@ survival so that adult fish can be regarded as a random sample from the fish in 
 we are not modeling the
 effects of mark selective fisheries, etc.).
 Although the sampling is technically without replacement, it is reasonable to model the sampling as
-with replacement because so few adults survive from any given cohort.  For our simulations, if we consider the
-$N_A$ adults that have survived from a release group tagged at rate $p_\mathrm{cwt}$  we will
+with replacement because relatively few fish survive to adulthood for any given cohort.  For our simulations, if we consider the
+$N_A$ adults in a particular sample stratum that have survived from a release group tagged at rate $p_\mathrm{cwt}$  we will
 model $\tilde{p}_\mathrm{cwt}$ as having a scaled binomial distribution:
-$	\tilde{p}_\mathrm{cwt} \equiv X/N_A$ where 
+$	\tilde{p}_\mathrm{cwt} \equiv X/N_A$, where $X$ is the number of $N_A$ that are in fact tagged,
 \[
 X \sim \mathrm{Binomial}(N_A, p_\mathrm{cwt}).
 \]
@@ -131,12 +130,12 @@ as a single release group. Let us assume that there are $S$ male-female pairs of
 whose eggs are contributed to the release group.  PBT will work most
 efficiently with 100\% tagging---in other words, when all the parents of a release group
 are genotyped.  However, there may be some rate at which genotypes are not obtained for certain
-individuals.  Currently,
+individuals (e.g., incomplete tissue sample collection, unscoreable genotypes, etc.).  Currently,
 genotype data from both parents is  required for PBT; however, with newer genotyping
 systems, that can economically provide more genotypes per individual, it will be possible
 to accurately perform assignments of offspring to single parents.  Regardless of the exact mechanism,
 we can still focus on the tagging rate of families (the offspring of two distinct parents) in the hatchery: under current practices
-a family is tagged if both parents are genotyped; allowing single-parent assignments a family would be
+a family is tagged if both parents are genotyped; with single-parent assignments a family would be
 considered tagged if at least one parent was genotyped.  For our 
 simulations, we will let $G$ families out of $S$ be tagged.
 Under this assumption, the
@@ -153,12 +152,12 @@ of release.
 Depending on how much information about spawning is recorded at the hatchery, there are various
 ways one can go about predicting $G$ or $G/S$. 
 If cross information is recorded at the
-hatchery, $G$ can be recorded directly from the mating records and the record of successful genotypes.
+hatchery, $G$ can be recorded directly from the mating records and the record of successfully obtained genotypes.
 If cross information is not recorded, then $G/S$ can be predicted from the total proportion of males and 
 females contributing to the release group that were successfully genotyped (see Part II.B of the report).
 In our simulations we will assume that $G$ is known because we are most interested in the effect of family
 size;  however, if one were interested, it would be possible to add another hierarchy to the simulations in which,
-although $G$ is fixed for the simulation,  $f_\mathrm{pbt}$ had to be estimated from the proportion of males
+although $G$ is fixed for the simulation,  $f_\mathrm{pbt}$ would be estimated from the proportion of males
 and females successfully genotyped.
 
 
@@ -191,19 +190,19 @@ p_\mathrm{pbt} = \frac{\sum_{i\in\mathcal{B}} J_i}{\sum_{i=1}^S J_i}.
 \end{enumerate}
  
 
-At the end of the above steps we have a simulated value of $p_\mathrm{pbt}$.  But now must simulate
+At the end of the above steps we have a simulated value of $p_\mathrm{pbt}$.  Next, we simulate
 the realized PBT-tagged fraction of adults, $\tilde{p}_\mathrm{pbt}$. 
-This is somewhat more complicated than for CWTs, because both the occurrence of tagging (\ie successful genotyping)
+This is somewhat more complicated than for CWTs, because both the occurrence of tagging (\ie successful genotyping of parents)
 and post-release rates of survival
-are family-specific.  Our simulation scheme has a mechanism to introduce additional
-variability in family-specific survival at this stage.  We assume that family-specific survival rate from release
-stage to adulthood is independent of the number of individuals each family produced in the release
+are family-specific.  Our simulation scheme has a mechanism to introduce this additional
+variability in  the family-specific survival at this stage.  We assume that the family-specific survival rate from release 
+to adulthood is independent of the number of individuals each family produced in the release
 group (a reasonable assumption, as the selective forces in the wild are very different from those in the 
 hatchery).    To simulate $\tilde{p}_\mathrm{pbt}$, using
 quantities that were simulated above, we:
 \begin{enumerate}
 \item Set the value of an additional parameter needed for this part of the simulation: $N_A$, the number
-of adults from the release group present at the time of sampling/recovery, and $\alpha$,
+of adults (tagged and untagged) from the release group present at the time of recovery sampling in a particular stratum, and $\alpha$,
 a parameter that controls variation in survival rate among families. 
 \item Let 
 \[
@@ -216,7 +215,7 @@ all components equal to $1/S$ (all individuals survive at the same rate, regardl
 \rightarrow 0$, $Y$ will have all its mass on one $i$, suggesting that only a single family has individuals
 that survive.
 \item Simulate $W_i$, the number of individuals from family $i$
-that survive to adulthood, from a multinomial distribution
+that survive and are present in the sample stratum, from a multinomial distribution
 with $N_A$ trials and cell probabilities $q_i = \frac{Y_i J_i}{\sum_{i=1}^S Y_i J_i}$:
 \[
 W = (W_1,\ldots, W_S) \sim \mathrm{Mult}_S(N_A, (q_1, \ldots, q_S)).
@@ -245,7 +244,7 @@ between 2000 and 4000 juveniles in the release group.
 The interpretation of $\alpha$ will perhaps be even less familiar to most, and it also might not
 be transparent how one should contextualize the joint effect of $r$ and $\alpha$ on the distribution
 of family sizes at the time of adult sampling.  To aid in interpretation of how much variance in
-family size is conferred by the combination of $r$ and $\alpha$ in any scenario, I estimate the
+family size is conferred by the combination of $r$ and $\alpha$ in any scenario, we estimate the
 effective size of the population for each scenario.  This is done by simulating the number of
 gene copies per family, $C_1,\ldots,C_S$,
 for a constant sized population from a multinomial distribution:
@@ -277,9 +276,9 @@ produces a Poisson-distributed number of
 juveniles at the release stage (equivalent to $\mu=3000$, and $r\rightarrow\infty$) and there is no
 additional variance due to differential family 
 survival, post-release (\ie $\alpha \rightarrow \infty$)---this is equivalent to reproduction in
-a ``Wright-Fisher'' population. The second scenario, has
+a ``Wright-Fisher'' population \citep[][p. 102]{Har&Cla2007}. The second scenario, has
 $\mu = 3000$, $r = 30$, and $\alpha = 1$, and produces an $N_b/(2S)$ ratio close to
-0.5.  In all simulations, $N_A$, the number of adults remaining at the time of recovery, was set to 
+0.5.  In all simulations, $N_A$, the number of adults present in the recovery stratum, was set to 
 be $10S$, or 5 times above replacement for the parents of the release group. One thousand replicate simulations were run for each of these 24 different combinations of simulation parameters. 
 
 \subsection{Simulation~1 results}The resulting distribution of realized adult tagging
@@ -302,7 +301,7 @@ are shown in Figures~\ref{fig:wf80} and~\ref{fig:Ne50}.
 }
 \caption{Density estimates of the distribution of realized tagging fractions under PBT (orange) and CWT (blue) scenarios
 in Simulation~1 with $\frac{N_b}{2S} = 1$ (i.e., Wright-Fisher variance in reproductive success). Number of successfully tagged families
-equal to $G = \lfloor0.80S\rfloor$ in ({em a}) and $G = \lfloor0.96S\rfloor$ in ({\em b}).  Numbers
+equal to $G = \lfloor0.80S\rfloor$ in ({\em a}) and $G = \lfloor0.96S\rfloor$ in ({\em b}).  Numbers
 atop each panel give $S$, the number of families contributing to the release group. The black vertical line
 gives the true fraction of families successfully genotyped or tagged at release by CWTs. Note that
 scales differ between panels.}
@@ -325,7 +324,7 @@ scales differ between panels.}
 }
 \caption{Density estimates of the distribution of realized tagging fractions under PBT (orange) and CWT (blue) scenarios
 in Simulation~1 with $\frac{N_b}{2S} = 0.5$. Number of successfully tagged families
-equal to $G = \lfloor0.80S\rfloor$ in ({em a}) and $G = \lfloor0.96S\rfloor$ in ({\em b}).  Numbers
+equal to $G = \lfloor0.80S\rfloor$ in ({\em a}) and $G = \lfloor0.96S\rfloor$ in ({\em b}).  Numbers
 atop each panel give $S$, the number of families contributing to the release group. The black vertical line
 gives the true fraction of families successfully genotyped or tagged at release by CWTs. Note that
 scales differ between panels.}
@@ -337,7 +336,7 @@ scales differ between panels.}
 
 These simulations show that, if salmon populations reproduced in a Wright-Fisher fashion
 (\ie Poisson distribution of family sizes), then the variation in
-realized tagging rates for PBT would be commensurate with those for CWTs.  However, salmon populations
+realized adult tagging rates for PBT would be commensurate with those for CWTs.  However, salmon populations
 typically exhibit variance in reproductive success beyond that expected in a Wright-Fisher population, with
 $N_b/(2S)$ ratios in  Oregon coho hatcheries reported to be between 0.76 and 0.84  \citet{Moyeretal2007}. 
  In such cases with overdispersed variance in reproductive success,
@@ -345,26 +344,30 @@ for release groups arising from few families ($<50$ families, for example),
 there is an appreciable increase in the variance of the realized tagged fraction of adults using PBT when
 not all of the parents were successfully genotyped.  However,
 the consequence of this for different applications needs to be assessed. Accordingly a second set of simulations
-was conducted in which the goal was to assess the effect on expanded numbers of fish. 
+was conducted in which the goal was to assess the effect on sample-expanded tag recovery estimates. 
 
-\section{Simulation~2. Implications for Expanded Estimates}
+\section{Simulation~2. Implications for sample-expanded tag recovery estimates}
 
-Simulation~1 assesses the variance in the realized tagging rate that corresponds to a situation in which
-the goal is to PBT-tag 100\% of a release group, but due to genotyping failures, some fraction
-of families are not tagged.  The comparison between CWTs and PBT in those simulations
-make it clear that for a given total tagging rate of a release group, PBT will always have a higher
-variance in the realized adult tagging rate than CWTs.  However, CWTs are not always applied to
-100\% of a release group.  Rather, CWTs are often applied to only a fraction of a release group, and then
-only a fraction of a fishery or the escapement might be sampled for tags.
-Recoveries of tags from a given recovery stratum are expanded, by muliplying by the reciprocal of the
-sampling rate, into a representation of the number of tagged fish from the release group present in the
-total recovery stratum.  That number might be expanded further, multiplying by the reciprocal of the
-tagging rate, to give an estimate of the total number of fish from the release group (whether
-tagged or not) in the recovery stratum.  Therefore, to understand the consequences of tagging rate
-variation on the uncertainty of release-group-specific estimates of total fish present in a recovery stratum, it is necessary to understand the 
+Simulation~1 assesses the variance in the realized adult tagging rate that corresponds to a situation in which
+the goal is to PBT-tag 100\% of a release group, but due to a variety of possible reasons, some fraction
+of families are not tagged (parents were not successfully genotyped).  The comparison between CWTs and PBT in those simulations
+make it clear that for a given tagging rate of a release group, PBT will always have a higher
+variance in the realized adult tagging rate than CWTs.  
+However, some quantities of interest are estimated based on mark-, tag-, and sample-expanded 
+recoveries including, e.g., the release group contribution to a stratum, and the release group
+early-life survival rate (release-to-age first vulnerable to fisheries). The purpose of the
+expansion is to scale up the observed number of recoveries in a stratum to an estimate of the
+total number of release group fish present in that stratum (whether or not marked+tagged, and
+whether or not sampled). The expansion is calculated by dividing the number of release group-specific
+recoveries by the product of the corresponding mark rate, tag rate, and sample rate
+(or, equivalently, multiplying the number of recoveries by the product of the corresponding inverse rates).
+Therefore, to understand the consequences of variation in the realized adult tagging rate
+on the uncertainty of release group-specific estimates of the total number of fish present in a recovery stratum, it is necessary to understand the 
 sampling context in which tagged fish are recovered. Simulation~2 attempts to provide that context.  
 
-\subsection{Simulating expanded sample estimates}
+Some other quantities of interest, e.g., release group-specific estimated exploitation and maturation rates, are also based on sample-expanded tag recoveries, but the estimators are independent of the mark and tag rates (since the release group-specific mark and tag rates appear in every term in the denominator, as well as in the numerator). However, variation in the number of tag recoveries itself for a given sampling rate would depend on the variance of the realized adult tagging rate.
+
+\subsection{Simulating sample-expanded tag recovery estimates}
 
 In Simulation~2, under the PBT scenario, each release group is, as before, descended from $S$ families, of which $G$ are successfully tagged.  However, a fraction
 $c$ of the release group is marked in such a way as to be subject to sampling.  In the simulated recovery stratum, there are $N_C$ fish from
@@ -373,13 +376,13 @@ from the release group expected to yield tag recoveries is $\frac{cvG}{S}$.   If
 the expanded estimate of $N_C$, the
 total number of fish from the release group in the recovery stratum, would be $\hat{N}_\mathrm{pbt} = \frac{n_\mathrm{pbt}S}{cvG}$.
 The PBT scenario is compared against a CWT scenario in which a fraction $c$ of the release group is marked, and 100\% of those marked fish
-carry CWTs (i.e., assume for simplicity that the rate of tag shedding is 0).  $N_C$ fish from the release group appear in the total recovery stratum,
+carry CWTs (i.e., assume for simplicity that the rate of tag shedding is 0).  $N_C$ fish from the release group appear in the recovery stratum,
 and a fraction $v$ of the total is sampled for marks, yielding $n_\mathrm{cwt}$ recoveries and an expanded estimate of
-$\hat{N}_\mathrm{cwt} = \frac{n_\mathrm{cwt}}{cv}$ fish from the release group in the total recovery stratum.  
+$\hat{N}_\mathrm{cwt} = \frac{n_\mathrm{cwt}}{cv}$ fish from the release group in the recovery stratum.  
 
 
 It is worth mentioning that while we refer to fish as being ``marked'' these simulations apply equally well to both visually
-and electronically sampled fisheries.  In the visual case, a fraction $c$ of the fish are ad-clipped and all of those are
+and electronically sampled fisheries.  In the visual case, a fraction $c$ of the fish are ad-clipped and all of those
 carry CWTs (in the CWT scenario), or a fraction $G/S$ are expected to be tagged with PBT (in the PBT scenario).  
 In the electronic case, the PBT scenario is 
 equivelent to a random fraction $c$ of the fish in the release group receiving AWTs that will trigger electronic detectors
@@ -388,7 +391,7 @@ carrying CWTs.
 
 
 The effect of $c$ and $v$ on the estimates always acts through their product, and, in Simulation~2 we can
-simply model their product $m = cv$---the fraction of the release group in the recovery stratum that is tagged and subject to sampling.
+simply model their product $m = cv$, the fraction of the release group in the recovery stratum that is marked, tagged and subject to sampling.
 For PBT simulation replicates we first simulate $\tilde{p}_\mathrm{pbt}$ as in Simulation~1, and then we
 simulate the number of PBT-tagged fish recoveries as $n_\mathrm{pbt}\sim\mathrm{Binomial}(N_C, m \tilde{p}_\mathrm{pbt})$, from which 
 we compute and record $\hat{N}_\mathrm{pbt} = \frac{n_\mathrm{pbt}S}{mG}$.  For the CWT simulation replicates, we simulate the number of sampled
@@ -438,20 +441,20 @@ the effect of the PBT tag rate variance is more noticeable, especially at values
 30.  If $m=1.0$, then the PBT tag rate variance is relatively important at all values of
 $S$.  This is not too surprising, since there is no variance in $\hat{N}_\mathrm{cwt}$ in that
 case.  However, it is also clear that the extra variance incurred from PBT is not very large
-for family tagging fractions greater than 0.096 or 0.98.  It must also be kept in mind that
+for family tagging fractions greater than 0.96 or 0.98.  It must also be kept in mind that
 CWTs will seldom achieve a 100\% tag rate, since there is usually some measurable degree of
-tag shedding.   As expected, the influence of PBT tag rate variance increases when $N_b/(2S)$
+tag shedding.   As expected, the influence the of PBT tag rate variance increases when $N_b/(2S)$
 decreases.
 
 Overall, the results indicate that the additional variance in expanded estimates,
-$\hat{N}_\mathrm{pbt}$ due to the variance in the PBT tagging rate is somewhat unremarkable 
+$\hat{N}_\mathrm{pbt}$ due to the variance in the PBT realized adult tagging rate is somewhat unremarkable 
 when the fraction of tagged families is greater than 98\%, regardless of $S$.  If 
-$G/(2S)$ is less then 0.98, however, then the additional variance only becomes truly 
+$G/S$ is less than 0.98, however, then the additional variance only becomes truly 
 noteworthy when $S<50$, $N_b/(2S) < 0.7$ and $m > 0.5$.
 
-Thus, the relative importance of PBT tagging rate variance to the overall uncertainty of 
-expanded estimates depends on the the range of values of those parameters that are
-likely to be encountered in practice.  Such values are explored in the following section.
+Thus, the relative importance of the PBT tagging rate variance to the overall uncertainty of 
+sample-expanded estimates depends on the the range of values of those parameters that are
+likely to be encountered in practice.  These values are explored in the following section.
 
 % m = 0.125
 \begin{sidewaysfigure}
@@ -459,7 +462,7 @@ likely to be encountered in practice.  Such values are explored in the following
 \caption{The uncertainty around expanded estimates using PBT or CWTs when $m = 0.125$.  $x$ axis shows the
 expected tagged fraction $\lfloor G/S \rfloor$ in each simulation. Upon the $y$-axis is the number of fish from the
 release group in the recovery stratum (shown as the black horizontal line) and the mean estimate of that number from each different set of 
-conditions plus or minus 2 standard deviations.  Thus, the vertical spread between lines of the same colour gives a representation
+conditions plus or minus 2 standard deviations.  Thus, the vertical spread between lines of the same color gives a representation
 of the uncertainty in the estimate of the expanded number of fish. Colors denote different $N_b/(2S)$ ratios for PBT, or denote
 the CWT estimate.  Different
 panels correspond to different numbers of $S$, as denoted on the top of each panel.
@@ -474,7 +477,7 @@ panels correspond to different numbers of $S$, as denoted on the top of each pan
 \caption{The uncertainty around expanded estimates using PBT or CWTs when $m = 0.25$.  $x$ axis shows the
 expected tagged fraction $\lfloor G/S \rfloor$ in each simulation. Upon the $y$-axis is the total number of fish from the
 release group in the recovery stratum (shown as the black horizontal line) and the mean estimate of that number from each different set of 
-conditions plus or minus 2 standard deviations.  Thus, the vertical spread between lines of the same colour gives a representation
+conditions plus or minus 2 standard deviations.  Thus, the vertical spread between lines of the same color gives a representation
 of the uncertainty in the estimate of the expanded number of fish. Colors denote different $N_b/(2S)$ ratios for PBT, or denote
 the CWT estimate.  Different
 panels correspond to different numbers of $S$, as denoted on the top of each panel.
@@ -488,7 +491,7 @@ panels correspond to different numbers of $S$, as denoted on the top of each pan
 \caption{The uncertainty around expanded estimates using PBT or CWTs when $m = 0.5$.  $x$ axis shows the
 expected tagged fraction $\lfloor G/S \rfloor$ in each simulation. Upon the $y$-axis is the total number of fish from the
 release group in the recovery stratum (shown as the black horizontal line) and the mean estimate of that number from each different set of 
-conditions plus or minus 2 standard deviations.  Thus, the vertical spread between lines of the same colour gives a representation
+conditions plus or minus 2 standard deviations.  Thus, the vertical spread between lines of the same color gives a representation
 of the uncertainty in the estimate of the expanded number of fish. Colors denote different $N_b/(2S)$ ratios for PBT, or denote
 the CWT estimate.  Different
 panels correspond to different numbers of $S$, as denoted on the top of each panel.
@@ -501,7 +504,7 @@ panels correspond to different numbers of $S$, as denoted on the top of each pan
 \caption{The uncertainty around expanded estimates using PBT or CWTs when $m = 0.75$.  $x$ axis shows the
 expected tagged fraction $\lfloor G/S \rfloor$ in each simulation. Upon the $y$-axis is the total number of fish from the
 release group in the recovery stratum (shown as the black horizontal line) and the mean estimate of that number from each different set of 
-conditions plus or minus 2 standard deviations.  Thus, the vertical spread between lines of the same colour gives a representation
+conditions plus or minus 2 standard deviations.  Thus, the vertical spread between lines of the same color gives a representation
 of the uncertainty in the estimate of the expanded number of fish. Colors denote different $N_b/(2S)$ ratios for PBT, or denote
 the CWT estimate.  Different
 panels correspond to different numbers of $S$, as denoted on the top of each panel.
@@ -516,7 +519,7 @@ panels correspond to different numbers of $S$, as denoted on the top of each pan
 \caption{The uncertainty around expanded estimates using PBT or CWTs when $m = 1.00$.  $x$ axis shows the
 expected tagged fraction $\lfloor G/S \rfloor$ in each simulation. Upon the $y$-axis is the number of fish from the
 release group in the recovery stratum (shown as the black horizontal line) and the mean estimate of that number from each different set of 
-conditions plus or minus 2 standard deviations.  Thus, the vertical spread between lines of the same colour gives a representation
+conditions plus or minus 2 standard deviations.  Thus, the vertical spread between lines of the same color gives a representation
 of the uncertainty in the estimate of the expanded number of fish. Colors denote different $N_b/(2S)$ ratios for PBT, or denote
 the CWT estimate.  Different
 panels correspond to different numbers of $S$, as denoted on the top of each panel.
@@ -531,14 +534,15 @@ panels correspond to different numbers of $S$, as denoted on the top of each pan
 
 Only a few estimates of the ratio of the effective number of breeders to the census number of breeders ($N_b/(2S)$) in salmon
 hatcheries are available.  \citet{Moyeretal2007} report estimates of between 0.76 and 0.84 for coho salmon in two different 
-Oregon hatcheries.  For Chinook, Mike Ackerman provided the working group with estimates of the number of fish from different
+Oregon hatcheries.  For Chinook salmon, Mike Ackerman (IDFG Eagle Fish Genetics Lab) provided us
+with estimates of the number of fish from different
 families returning to 5 different
 hatcheries in Idaho.  From these data it is possible to estimate a range of $N_b/(2S)$ values from 0.3 to 0.5.
 
 
 \subsection{Number of families per release group}
 The results in Table~\ref{tab:relsummary} gives the size of all CWT-tagged release groups from 2000 forward for
-Chinook and coho.  For this analysis, I have assumed that if each release group
+Chinook and coho salmon.  For this analysis, we have assumed that if each release group
 were to be tagged via PBT that it arose from spawnings at the hatchery in which the number of male
 and female parents is equal and that each Chinook female produces 3,800 offspring that survive to the release stage, and
 a coho femal produces 1,800 juveniles survive to release.
@@ -546,18 +550,19 @@ a coho femal produces 1,800 juveniles survive to release.
 
 %%%%%%%%%%%%%%
 \begin{table}
-\caption{Summary of tagged chinook releases since brood year 2000 across all agencies.
-The No.~releases column gives the number of families that would have been required to
-create both the tagged and untagged components of the release group if number of male and female parents were equal and each female
-averaged 3,000 smolts surviving to the release stage. The column No.~smolts gives the total number of smolts produced since 2000
-in releases requiring number of familes in the range as given in No.~familes.  The column No.~releases gives the number of 
+\caption{Summary of tagged Chinook and coho salmon releases since brood year 2000 across all agencies.
+The No.~families column gives the number of families that would have been required to
+create both the tagged and untagged components of the release group if the number of male and female parents were equal and each female
+averaged 3,800 smolts and 1,800 smolts surviving to the release stage for Chinook and coho salmon, respectively. The column No.~smolts gives the total number of 
+released smolts since 2000
+in releases requiring the number of families in the range as given in No.~families.  The column No.~releases gives the number of 
 actual release groups in each No.~families category. \label{tab:relsummary}}
 \begin{center}
 \begin{tabular}{rrrrrr}
 \hline\hline
 \\
 \multicolumn{5}{c}{Chinook}\\
-No.~families  &  No.~smolts~released  &  No.~releases  &  \% of all smolts  &  \% of all releases \\ \hline
+No.~families  &  No.~smolts  &  No.~releases  &  \% of all smolts  &  \% of all releases \\ \hline
 0--10  &   73,629,227  &  5,138  &  2.40  &  33.72\\
 10--25  &  153,197,630  &  3,035  &  4.99  &  19.92\\
 25--50  &  248,382,387  &  2,379  &  8.08  &  15.62\\
@@ -569,7 +574,7 @@ No.~families  &  No.~smolts~released  &  No.~releases  &  \% of all smolts  &  \
 \\
 \mbox{}\\
 \multicolumn{5}{c}{Coho}\\
-No.~families  &  No.~smolts~released  &  No.~releases  &  \% of all smolts  &  \% of all releases \\ \hline
+No.~families  &  No.~smolts  &  No.~releases  &  \% of all smolts  &  \% of all releases \\ \hline
 0--10  &    9,876,599  &  1,347  &  1.82  &  32.79\\
 10--25  &   24,318,776  &    806  &  4.47  &  19.62\\
 25--50  &   45,857,171  &    718  &  8.44  &  17.48\\
@@ -583,16 +588,17 @@ No.~families  &  No.~smolts~released  &  No.~releases  &  \% of all smolts  &  \
 \end{center}
 \end{table}
 %%%%%%%%%%%%%%%
-These tables clearly show that a large fraction of all releases are very small (requiring fewer than 25 parents to produce the released juveniles).
+These tables clearly show that a large fraction ($>50\%$) of all release groups are very small (requiring fewer than 25 parents to produce the released juveniles).
 
 \subsection{Sampling fraction}
 We calculated the value of $m$ for nearly every non-DIT tag recovered in marine fisheries
-for Chinook in the year 2012.  For every marine recovery in a fishery of type $<50$, we
-calculated the number of release group
-fish represented by that recovery by multiplying the reciprocal of the {\tt estimated\_number} column
+for Chinook salmon in the year 2012.  For each recovery in a marine fishery of type $<50$, 
+the value of $m$ was calculated by multiplying the fraction of the release group that received a CWT ($c$) 
+times the sampling rate ($s$). The sampling rate for each recovery was derived as the inverse of the value
+reported for the {\tt estimated\_number} field
 (which provides, ``Estimated number of tagged fish in the catch with the same coded wire
-tag represented by this tag recovery, as estimated by the reporting agency'') to the
-fraction of the release group that received CWTs.  This analysis assumes that all fish with CWTs were ``marked'' so 
+tag represented by this tag recovery, as estimated by the reporting agency'').
+This analysis assumes that all fish with CWTs were ``marked'' so 
 as to be subject to sampling.  If a fraction less than 100\% of tagged fish are marked, the actual value of $m$
 would be smaller than calculated.  The calulated $m$ values for each recovery are summarized in the 
 histograms of Figure~\ref{fig:mhists} which show that $m < 0.5$ for most release groups
@@ -611,65 +617,69 @@ in the marine fisheries of Figure~\ref{fig:mhists}.
   
 \subsection{Fraction of families successfully tagged}
 It is clear that keeping the successful tagging rate of families as high as possible is important for PBT.  One important
-point this raises is the great advantage achieved if using a sufficient number of markers that single-parent
-parentage assignments can be made accurately.  Figure~\ref{fig:succ_rate} shows the fraction of families tagged as a 
-function of the fraction of individual parent genotypes successfully genotyped when parentage is done on the basis
-of single parents or parent pairs.  
+point this raises is the great advantage that would be achieved if a sufficient number of markers were used such that single-parent assignments could be made accurately.  Figure~\ref{fig:succ_rate} shows the fraction of families tagged as a 
+function of the fraction of the individual genotyping success rate when the parentage assignment
+is done on the basis of single parents or parent pairs. 
 \begin{figure}
 \centering
 \includegraphics[width = \textwidth]{images/succ_rate.pdf}
 \caption{Expected family tagging rates as a function of the rate of successful individual genotyping
 under two methods of parentage assignment---single parent and parent pair assignment.  Vertical blue lines
-depict the genotyping success rates achieved over 5 years in Chinook and steelhead in the Snake River
-PBT program.}
+depict the genotyping success rates achieved over the last 5 years in the Chinook salmon and steelhead
+trout PBT programs in the Snake River basin.}
 \label{fig:succ_rate}
 \end{figure}
 
-If one can only make parent-pair assignments accurately, then the number of successfully-tagged
-families decrease quickly when a few individuals are unsuccessfully genotyped.  However, if single-parent assignments
-are possible, the family tagging rate decreases much more  slowly because only one parent needs be successfully genotyped
-to tag the family.  For example, even if the individual genotyping success rate is as low as 0.86, the family tagging rate
-is still expected to exceed 0.98.  
+If both parents must be successfully genotyped to tag the family, then the number of successfully-tagged
+families decreases quickly when a few individuals are unsuccessfully genotyped.
+However, if single-parent assignments were possible, the family tagging rate would
+decrease much more slowly because only one parent would need to be successfully
+genotyped to tag the family. For example, even if the individual genotyping
+success rate is as low as 0.86, the family tagging rate would still be expected to exceed 0.98.
 
-The most comprehensive data available individual genotyping success rate comes from the Snake River basin where a PBT program has been 
-ongoing in Chinook and steelhead for over 6 years.  From 2009 to 2013, 43,770 of 44,468 total chinook were successfully genotyped---a success
-rate of 98.43\%.  During the same period 26,908 of 27,565 steelhead (97.62\%) were successfully genotyped.  The expected family tagging
-rates in these program, using parent-pair assignments is thus 0.969, and 0.953, respectively.  Using single parent assignments, 
-the expected family tagging rates would both be 0.9998 and 0.9994.  
 
-It is worth noting that, because the tagging rate is constrained to be less than or equal to one, an expected tagging rate very 
+
+The most comprehensive data available on the individual genotyping success rate comes
+from the Snake River basin current PBT programs for Chinook salmon and steelhead trout.
+In these programs, from 2009 to 2013, 43,770 of 44,468 Chinook salmon (98.43\%) were
+successfully genotyped. During the same period, 26,908 of 27,565 steelhead trout (97.62\%)
+were successfully genotyped. The expected family tagging rates in these programs, using parent-pair assignments
+is thus 0.969, and 0.953, respectively. Were single parent assignments possible,
+the expected family tagging rates would be 0.9998 and 0.9994, respectively.
+
+It is worth noting that, because the tagging rate must be less than or equal to one, an expected tagging rate very 
 close to 1 implies that the actual tagging rate must almost always be close to one.  
 This is relevant in consideration of our assumption
 throughout the simulations that $G$ is known without error. Typically $G$ would only be known without error if all the
 matings contributing to a release group were recorded, so that each family could be identified as tagged or not, according to
-whether or not one of the parents in it was successfully genotyped.
+whether both parents were successfully genotyped.
 However, if the expected family tagging rates are very close to 1.0, then it is necessarily the case that
 the actual tagging rate will, with high probability, also be 
-close to one. Therefore, if a PBT program were using single-parent assignments and
-obtaining scorable genotypes from the
-broodstock at the same rate that has been achieved for five years in the Idaho program, then
+close to one. Therefore, if a PBT program were able to use single-parent assignments and
+obtain scorable (successful) genotypes from the
+broodstock at the same rate that has been achieved over the last five years in the Idaho programs, then
 (so long as the program was not mating only a single male to each of many tens of females) it would not be necessary
-to record matings at the hatchery, and still the
+to record the release group matings, and still the
 resulting uncertainty in $G$ would be negligible.
 
 
 
 \section{Conclusions}
 
-Variance in PBT tagging rates is most likely to decrease accuracy of PBT-based estimates of expanded fish numbers
-when all four of the following conditions coincide:
+Variance in the realized PBT adult tagging rate is most likely to decrease the accuracy
+of PBT-based estimates of sample-expanded tag recoveries when all four of the following conditions occur:
 \begin{enumerate}
 \item Release groups are composed of offspring of fewer than 30 families,
-\item The $N_b/(2S)$ ratio in the hatchery is lower than 0.7,
-\item A fraction higher than 50\% of all the fish from a release group in a recovery stratum are expected to be sampled,
-\item The genotyping success rates is low enough that fewer than 96\% of families are successfully tagged.
+\item The $N_b/(2S)$ ratio in the hatchery is lower than 0.88,
+\item A fraction higher than 50\% of all the fish from a release group in a recovery stratum are expected to be marked and sampled,
+\item The genotyping success rate is low enough that fewer than 96\% of families are successfully tagged.
 \end{enumerate}
-A review of these quantities in existing programs suggest that condition~1 is often encountered, 2 is usually encountered, 3 is infrequently 
-encountered, and most importantly, long-term ongoing programs have demonstrated that genotyping success rates can be maintained 
+A review of these conditions and quantities with respect to existing CWT and PBT programs suggest that condition~1 is often encountered, 2 is usually encountered, 3 is infrequently 
+encountered, and most importantly, the existing PBT programs in the Snake River Basin have demonstrated that genotyping success rates can be maintained 
 at high levels.
 
-This analysis indicates that careful sampling and tissue handling protocols to ensure high genotyping success and the use of sufficient markers to allow
-accurate single parent assignment would reduce PBT tag rate variance and its practical consequences to negligible proportions.
+This analysis indicates that careful sampling and tissue handling protocols to ensure high genotyping success and the use of a sufficient number of markers to allow
+accurate single parent assignment would reduce PBT realized tag rate variance and its practical consequences to negligible proportions.
 
 \bibliography{../bibstuff/pbtfeas}
 \bibliographystyle{mychicago}
