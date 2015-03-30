@@ -39,21 +39,36 @@
 \parindent = 0.0in
 
 
-\title{Variation in parentage-based tagging and coded-wire tagging rates, and its consequences for the variance of sample-expanded tag recovery estimates}
+% modify sectioning commands so the font is not so big and gnarly.
+\makeatletter
+\renewcommand\section{\@startsection {section}{1}{\z@}%
+                                   {-3.5ex \@plus -1ex \@minus -.2ex}%
+                                   {0.1ex \@plus.2ex}%
+                                   {\normalfont\large\bfseries}}
+\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+                                     {-3.25ex\@plus -1ex \@minus -.2ex}%
+                                     {0.1ex \@plus .2ex}%
+                                     {\normalfont\normalsize\bfseries}}
+\makeatother
+
+
+
+%\title{Variation in parentage-based tagging and coded-wire tagging rates, and its consequences for the variance of sample-expanded tag recovery estimates}
 %\author{Eric C. Anderson\thanks{
 %    Fisheries Ecology Division, 
 %    Southwest Fisheries Science Center, 
 %    110 Shaffer Road,
 %    Santa Cruz, CA 95060}
 %}
-\date{}
+%\date{}
 
 \begin{document}
+\setcounter{page}{122}   %%%% HERE IS WHERE YOU CAN SET THE STARTING PAGE NUMBER!
 
-\maketitle
+%\maketitle
 
 
-
+{\large\bf Appendix 2 -- Variation in parentage-based tagging and coded-wire tagging rates, and its consequences for the variance of sample-expanded tag recovery estimates}
 
 \section{Summary}
 Realized rates of tagging are investigated for scenarios using parentage-based tagging (PBT)
@@ -279,15 +294,14 @@ survival, post-release (\ie $\alpha \rightarrow \infty$)---this is equivalent to
 a ``Wright-Fisher'' population \citep[][p. 102]{Har&Cla2007}. The second scenario, has
 $\mu = 3000$, $r = 30$, and $\alpha = 1$, and produces an $N_b/(2S)$ ratio close to
 0.5.  In all simulations, $N_A$, the number of adults present in the recovery stratum, was set to 
-be $10S$, or 5 times above replacement for the parents of the release group. One thousand replicate simulations were run for each of these 24 different combinations of simulation parameters. 
+be $10S$, or 5 times above replacement for the parents of the release group. This figure is likely many more fish than would
+be encountered in a small stratum; however it was chosen so as to have enough simulated adults to permit reliable estimation
+of relative differences in realized CWT and PBT adult tagging rates. 
+One thousand replicate simulations were run for each of these 24 different combinations of simulation parameters. 
 
 \subsection{Simulation~1 results}The resulting distribution of realized adult tagging
 rates ($\tilde{p}_\mathrm{pbt}$ and $\tilde{p}_\mathrm{cwt}$)
 are shown in Figures~\ref{fig:wf80} and~\ref{fig:Ne50}.
-
-
-
-
 %%% First histogram 2-subfigures (W-F)
 \begin{sidewaysfigure}
 \centering
@@ -307,10 +321,6 @@ gives the true fraction of families successfully genotyped or tagged at release 
 scales differ between panels.}
 \label{fig:wf80}
 \end{sidewaysfigure}
-
-
-
-
 %%% Second histogram 2-subfigures (Ne/N = 0.5)
 \begin{sidewaysfigure}
 \centering
@@ -330,10 +340,7 @@ gives the true fraction of families successfully genotyped or tagged at release 
 scales differ between panels.}
 \label{fig:Ne50}
 \end{sidewaysfigure}
-
-
-
-
+%%%%%%%%%%%%%%
 These simulations show that, if salmon populations reproduced in a Wright-Fisher fashion
 (\ie Poisson distribution of family sizes), then the variation in
 realized adult tagging rates for PBT would be commensurate with those for CWTs.  However, salmon populations
@@ -385,13 +392,13 @@ It is worth mentioning that while we refer to fish as being ``marked'' these sim
 and electronically sampled fisheries.  In the visual case, a fraction $c$ of the fish are ad-clipped and all of those
 carry CWTs (in the CWT scenario), or a fraction $G/S$ are expected to be tagged with PBT (in the PBT scenario).  
 In the electronic case, the PBT scenario is 
-equivelent to a random fraction $c$ of the fish in the release group receiving AWTs that will trigger electronic detectors
+equivalent to a random fraction $c$ of the fish in the release group receiving AWTs that will trigger electronic detectors
 and lead to genotyping of the fish, while the CWT scenario is equivalent to a fraction $c$ of the release group
 carrying CWTs.   
 
 
 The effect of $c$ and $v$ on the estimates always acts through their product, and, in Simulation~2 we can
-simply model their product $m = cv$, the fraction of the release group in the recovery stratum that is marked, tagged and subject to sampling.
+simply model their product $m = cv$, the fraction of the release group in the recovery stratum that is expected to be marked and sampled.
 For PBT simulation replicates we first simulate $\tilde{p}_\mathrm{pbt}$ as in Simulation~1, and then we
 simulate the number of PBT-tagged fish recoveries as $n_\mathrm{pbt}\sim\mathrm{Binomial}(N_C, m \tilde{p}_\mathrm{pbt})$, from which 
 we compute and record $\hat{N}_\mathrm{pbt} = \frac{n_\mathrm{pbt}S}{mG}$.  For the CWT simulation replicates, we simulate the number of sampled
@@ -640,7 +647,7 @@ success rate is as low as 0.86, the family tagging rate would still be expected 
 
 
 The most comprehensive data available on the individual genotyping success rate comes
-from the Snake River basin current PBT programs for Chinook salmon and steelhead trout.
+from the current Snake River basin PBT programs for Chinook salmon and steelhead trout.
 In these programs, from 2009 to 2013, 43,770 of 44,468 Chinook salmon (98.43\%) were
 successfully genotyped. During the same period, 26,908 of 27,565 steelhead trout (97.62\%)
 were successfully genotyped. The expected family tagging rates in these programs, using parent-pair assignments
