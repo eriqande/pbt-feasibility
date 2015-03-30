@@ -587,11 +587,14 @@ These tables clearly show that a large fraction of all releases are very small (
 
 \subsection{Sampling fraction}
 We calculated the value of $m$ for nearly every non-DIT tag recovered in marine fisheries
-for Chinook in the year 2012.  This was done by querying every marine recovery in
-run year 2012 in a fishery of type $<50$  and multiplying the reciprocal of the {\tt estimated\_number} column
+for Chinook in the year 2012.  For every marine recovery in a fishery of type $<50$, we
+calculated the number of release group
+fish represented by that recovery by multiplying the reciprocal of the {\tt estimated\_number} column
 (which provides, ``Estimated number of tagged fish in the catch with the same coded wire
 tag represented by this tag recovery, as estimated by the reporting agency'') to the
-fraction of the release group that received CWTs. These values are summarized in the 
+fraction of the release group that received CWTs.  This analysis assumes that all fish with CWTs were ``marked'' so 
+as to be subject to sampling.  If a fraction less than 100\% of tagged fish are marked, the actual value of $m$
+would be smaller than calculated.  The calulated $m$ values for each recovery are summarized in the 
 histograms of Figure~\ref{fig:mhists} which show that $m < 0.5$ for most release groups
 in marine fisheries, though there are some values near 1.0.
 \begin{figure}
